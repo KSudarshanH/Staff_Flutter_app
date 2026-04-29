@@ -304,7 +304,7 @@ class _TableCard extends StatelessWidget {
     final isServing = auth.role == StaffRole.servingStaff;
 
     return GestureDetector(
-      onTap: () => Navigator.pushNamed(context, '/order-details'),
+      onTap: null,
       child: Container(
         decoration: BoxDecoration(
           color: AppColors.white,

@@ -5,6 +5,7 @@ import '../models/models.dart';
 import '../theme/app_theme.dart';
 import '../widgets/common_widgets.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../contexts/auth_provider.dart';
 
 class OrdersScreen extends StatefulWidget {
   const OrdersScreen({super.key});
@@ -55,9 +56,11 @@ class _OrdersScreenState extends State<OrdersScreen> {
     final allOrders = ordersProvider.orders
         .where(
           (o) =>
-              o.status == OrderStatus.confirmed ||
-              o.status == OrderStatus.preparing ||
-              o.status == OrderStatus.ready,
+  o.status == OrderStatus.placed ||
+  o.status == OrderStatus.confirmed ||
+  o.status == OrderStatus.preparing ||
+  o.status == OrderStatus.ready ||
+  o.status == OrderStatus.served
         )
         .toList();
 

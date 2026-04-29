@@ -314,7 +314,11 @@ class _MiniOrderCard extends StatelessWidget {
     final config = _getStatusConfig(order.status);
 
     return GestureDetector(
-      onTap: () => Navigator.pushNamed(context, '/order-details'),
+      onTap: () => Navigator.pushNamed(
+  context,
+  '/order-details',
+  arguments: order.id, // ✅ VERY IMPORTANT
+),
       child: Container(
         padding: const EdgeInsets.all(20), // p-5
         decoration: BoxDecoration(

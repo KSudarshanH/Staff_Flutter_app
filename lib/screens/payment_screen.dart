@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../contexts/orders_provider.dart';
+import '../contexts/auth_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/common_widgets.dart';
 
@@ -15,7 +16,7 @@ class PaymentScreen extends StatefulWidget {
 
 class _PaymentScreenState extends State<PaymentScreen> {
   String? _selectedMethod;
-  int _tipPercent = 0;
+  bool _isProcessing = false;
 
   final _methods = [
     {'id': 'cash', 'label': 'Cash', 'icon': Icons.payments_outlined},
@@ -34,13 +35,13 @@ class _PaymentScreenState extends State<PaymentScreen> {
       );
     }
 
-    final tipAmount = (order.subtotal * _tipPercent / 100).round();
-    final finalTotal = order.total.round() + tipAmount;
+    final finalTotal = order.total.round();
 
     return Scaffold(
       backgroundColor: AppColors.ivory,
       body: Column(
         children: [
+          // HEADER
           Container(
             color: AppColors.primary,
             child: SafeArea(
@@ -49,23 +50,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
                 child: Row(
                   children: [
-                    GestureDetector(
-                      onTap: () => Navigator.pop(context),
-                      child: Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: const Icon(
-                          Icons.arrow_back,
-                          color: Colors.white,
-                          size: 20,
-                        ),
-                      ),
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back, color: Colors.white),
+                      onPressed: () => Navigator.pop(context),
                     ),
-                    const SizedBox(width: 16),
+                    const SizedBox(width: 8),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -74,7 +63,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                           style: AppTheme.serif(
                             size: 22,
                             weight: FontWeight.w900,
-                            color: AppColors.white,
+                            color: Colors.white,
                           ),
                         ),
                         Text(
@@ -88,223 +77,142 @@ class _PaymentScreenState extends State<PaymentScreen> {
               ),
             ),
           ),
+
+          // BODY
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(20),
               child: Column(
                 children: [
-                  // Amount card
+                  // 🔥 TOTAL CARD (CENTERED - FIXED)
                   AppCard(
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Text(
+                        const Text(
                           'Total Amount',
-                          style: AppTheme.sans(
-                            size: 13,
-                            color: AppColors.slate500,
-                          ),
+                          style: TextStyle(color: Colors.grey),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 10),
                         Text(
                           '₹$finalTotal',
-                          style: AppTheme.serif(
-                            size: 48,
-                            weight: FontWeight.w900,
-                            color: AppColors.slate900,
+                          style: const TextStyle(
+                            fontSize: 36,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
-                        const SizedBox(height: 16),
-                        Container(height: 1, color: AppColors.slate200),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 20),
+
                         _AmountRow('Subtotal', '₹${order.subtotal.round()}'),
-                        const SizedBox(height: 6),
                         _AmountRow('Tax', '₹${order.tax.round()}'),
-                        const SizedBox(height: 6),
-                        _AmountRow('Tip', '₹$tipAmount'),
+
                         const SizedBox(height: 10),
-                        _AmountRow('Total', '₹$finalTotal', bold: true),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
+                        const Divider(),
+                        const SizedBox(height: 10),
 
-                  // Tip selection
-                  AppCard(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Add Tip',
-                          style: AppTheme.serif(
-                            size: 18,
-                            weight: FontWeight.w700,
-                            color: AppColors.slate900,
-                          ),
-                        ),
-                        const SizedBox(height: 14),
-                        Row(
-                          children: [0, 5, 10, 15, 20].map((pct) {
-                            final isSelected = _tipPercent == pct;
-                            return Expanded(
-                              child: GestureDetector(
-                                onTap: () => setState(() => _tipPercent = pct),
-                                child: Container(
-                                  margin: const EdgeInsets.symmetric(
-                                    horizontal: 3,
-                                  ),
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 12,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: isSelected
-                                        ? AppColors.primary
-                                        : AppColors.slate50,
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(
-                                      color: isSelected
-                                          ? AppColors.primary
-                                          : AppColors.slate200,
-                                    ),
-                                  ),
-                                  child: Text(
-                                    pct == 0 ? 'No tip' : '$pct%',
-                                    textAlign: TextAlign.center,
-                                    style: AppTheme.sans(
-                                      size: 12,
-                                      weight: FontWeight.w700,
-                                      color: isSelected
-                                          ? AppColors.white
-                                          : AppColors.slate600,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            );
-                          }).toList(),
+                        _AmountRow(
+                          'Total',
+                          '₹$finalTotal',
+                          bold: true,
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 16),
 
-                  // Payment method
+                  const SizedBox(height: 20),
+
+                  // 🔥 PAYMENT METHOD TITLE ADDED
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      "Payment Method",
+                      style: AppTheme.sans(
+                        size: 16,
+                        weight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  // 🔥 PAYMENT METHODS (GOOD UI PRESERVED)
                   AppCard(
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Payment Method',
-                          style: AppTheme.serif(
-                            size: 18,
-                            weight: FontWeight.w700,
-                            color: AppColors.slate900,
-                          ),
-                        ),
-                        const SizedBox(height: 14),
-                        ..._methods.map((m) {
-                          final isSelected = _selectedMethod == m['id'];
-                          return GestureDetector(
-                            onTap: () => setState(
-                              () => _selectedMethod = m['id'] as String,
-                            ),
-                            child: Container(
-                              margin: const EdgeInsets.only(bottom: 10),
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
+                      children: _methods.map((m) {
+                        final isSelected = _selectedMethod == m['id'];
+
+                        return GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _selectedMethod = m['id'] as String;
+                            });
+                          },
+                          child: Container(
+                            margin: const EdgeInsets.only(bottom: 10),
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: isSelected
+                                  ? Colors.red.shade50
+                                  : Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
                                 color: isSelected
-                                    ? AppColors.primary.withValues(alpha: 0.06)
-                                    : AppColors.slate50,
-                                borderRadius: BorderRadius.circular(14),
-                                border: Border.all(
-                                  color: isSelected
-                                      ? AppColors.primary
-                                      : AppColors.slate200,
-                                  width: isSelected ? 2 : 1,
-                                ),
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    m['icon'] as IconData,
-                                    color: isSelected
-                                        ? AppColors.primary
-                                        : AppColors.slate400,
-                                    size: 24,
-                                  ),
-                                  const SizedBox(width: 14),
-                                  Text(
-                                    m['label'] as String,
-                                    style: AppTheme.sans(
-                                      size: 15,
-                                      weight: FontWeight.w700,
-                                      color: isSelected
-                                          ? AppColors.primary
-                                          : AppColors.slate700,
-                                    ),
-                                  ),
-                                  const Spacer(),
-                                  if (isSelected)
-                                    const Icon(
-                                      Icons.check_circle,
-                                      color: AppColors.primary,
-                                      size: 20,
-                                    ),
-                                ],
+                                    ? Colors.red
+                                    : Colors.grey.shade300,
+                                width: isSelected ? 2 : 1,
                               ),
                             ),
-                          );
-                        }),
-                      ],
+                            child: Row(
+                              children: [
+                                Icon(
+                                  m['icon'] as IconData,
+                                  color: isSelected
+                                      ? Colors.red
+                                      : Colors.grey,
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    m['label'] as String,
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: isSelected
+                                          ? FontWeight.bold
+                                          : FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                                if (isSelected)
+                                  const Icon(Icons.check_circle,
+                                      color: Colors.red),
+                              ],
+                            ),
+                          ),
+                        );
+                      }).toList(),
                     ),
                   ),
-                  const SizedBox(height: 24),
 
+                  const SizedBox(height: 20),
+
+                  // 🔥 BUTTON (NO ERROR)
                   PrimaryButton(
-                    label: 'Confirm Payment · ₹$finalTotal',
-                    color: AppColors.primary,
-                    onTap: _selectedMethod == null
-                        ? () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Please select payment method'),
-                              ),
-                            );
-                          }
-                        : () {
-                            provider.payOrder(widget.orderId);
-                            Navigator.pushReplacementNamed(
-                              context,
-                              '/bill',
-                              arguments: {
-                                'orderId': widget.orderId,
-                                'tipAmount': tipAmount,
-                                'finalTotal': finalTotal,
-                                'paymentMethod': _selectedMethod,
-                              },
-                            );
+                    label: _isProcessing
+                        ? "Processing..."
+                        : 'Confirm Payment · ₹$finalTotal',
+                    onTap: (_selectedMethod == null || _isProcessing)
+                        ? null
+                        : () async {
+                            await _handlePayment(
+                                context, provider, finalTotal);
                           },
                   ),
-                  const SizedBox(height: 12),
-                  GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      decoration: BoxDecoration(
-                        color: AppColors.white,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: AppColors.slate200),
-                      ),
-                      child: Text(
-                        'Cancel',
-                        textAlign: TextAlign.center,
-                        style: AppTheme.sans(
-                          size: 15,
-                          weight: FontWeight.w700,
-                          color: AppColors.slate700,
-                        ),
-                      ),
-                    ),
+
+                  const SizedBox(height: 10),
+
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Cancel'),
                   ),
                 ],
               ),
@@ -313,6 +221,44 @@ class _PaymentScreenState extends State<PaymentScreen> {
         ],
       ),
     );
+  }
+
+  // 🔥 CLEAN HANDLER
+  Future<void> _handlePayment(
+      BuildContext context,
+      OrdersProvider provider,
+      int finalTotal) async {
+    setState(() => _isProcessing = true);
+
+    final token = context.read<AuthProvider>().token;
+
+    if (token == null) {
+      setState(() => _isProcessing = false);
+      return;
+    }
+
+    try {
+      await provider.payOrder(widget.orderId, token);
+
+      if (!mounted) return;
+
+      Navigator.pushReplacementNamed(
+        context,
+        '/bill',
+        arguments: {
+          'orderId': widget.orderId,
+          'tipAmount': 0,
+          'finalTotal': finalTotal,
+          'paymentMethod': _selectedMethod,
+        },
+      );
+    } catch (e) {
+      print("Payment error: $e");
+    }
+
+    if (mounted) {
+      setState(() => _isProcessing = false);
+    }
   }
 }
 
@@ -328,20 +274,11 @@ class _AmountRow extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          label,
-          style: AppTheme.sans(
-            size: bold ? 15 : 13,
-            weight: bold ? FontWeight.w800 : FontWeight.normal,
-            color: bold ? AppColors.slate900 : AppColors.slate500,
-          ),
-        ),
+        Text(label),
         Text(
           value,
-          style: AppTheme.sans(
-            size: bold ? 16 : 14,
-            weight: FontWeight.w700,
-            color: bold ? AppColors.primary : AppColors.slate900,
+          style: TextStyle(
+            fontWeight: bold ? FontWeight.bold : FontWeight.normal,
           ),
         ),
       ],

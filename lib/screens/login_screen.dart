@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../contexts/auth_provider.dart';
 import '../models/models.dart';
+import '../contexts/orders_provider.dart';
 import '../theme/app_theme.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
@@ -37,50 +38,59 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _handleLogin() async {
-    setState(() => _error = null);
+  setState(() => _error = null);
 
-    if (_loginType == 'admin') {
-      if (_adminEmailController.text.isEmpty ||
-          _adminPasswordController.text.isEmpty) {
-        setState(() => _error = 'Please fill in all fields');
-        return;
-      }
-      
-      // Simulate Admin Login
-      // For this staff app, we'll just show an error or a dummy success since there is no admin dashboard here.
-      // Or we can route to dashboard if they want it to act as admin
-      setState(() => _error = 'Admin login is available on Web Portal only.');
+  if (_loginType == 'admin') {
+    if (_adminEmailController.text.isEmpty ||
+        _adminPasswordController.text.isEmpty) {
+      setState(() => _error = 'Please fill in all fields');
+      return;
+    }
 
-    } else {
-      if (_staffIdController.text.isEmpty ||
-          _staffPasswordController.text.isEmpty) {
-        setState(() => _error = 'Please fill in all fields');
-        return;
-      }
-      if (_selectedRole == null) {
-        setState(() => _error = 'Please select a role');
-        return;
+    setState(() =>
+        _error = 'Admin login is available on Web Portal only.');
+  } else {
+    if (_staffIdController.text.isEmpty ||
+        _staffPasswordController.text.isEmpty) {
+      setState(() => _error = 'Please fill in all fields');
+      return;
+    }
+    if (_selectedRole == null) {
+      setState(() => _error = 'Please select a role');
+      return;
+    }
+
+    final auth = context.read<AuthProvider>();
+    final orders = context.read<OrdersProvider>();
+
+    try {
+      // 🔥 LOGIN
+      await auth.login(
+        _staffIdController.text,
+        _staffPasswordController.text,
+        _selectedRole!,
+      );
+
+      // 🔥 FETCH ORDERS AFTER LOGIN
+      if (auth.token != null) {
+        await orders.fetchOrders(auth.token!);
       }
 
-      final auth = context.read<AuthProvider>();
-      try {
-        await auth.login(
-          _staffIdController.text,
-          _staffPasswordController.text,
-          _selectedRole!,
-        );
-        if (mounted) {
-          if (_selectedRole == StaffRole.billingStaff) {
-            Navigator.of(context).pushReplacementNamed('/billing');
-          } else {
-            Navigator.of(context).pushReplacementNamed('/dashboard');
-          }
+      if (mounted) {
+        if (_selectedRole == StaffRole.billingStaff) {
+          Navigator.of(context)
+              .pushReplacementNamed('/billing');
+        } else {
+          Navigator.of(context)
+              .pushReplacementNamed('/dashboard');
         }
-      } catch (e) {
-        setState(() => _error = 'Login failed. Please check your credentials.');
       }
+    } catch (e) {
+      setState(() =>
+          _error = 'Login failed. Please check your credentials.');
     }
   }
+}
 
   @override
   Widget build(BuildContext context) {

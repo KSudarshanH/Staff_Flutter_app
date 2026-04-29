@@ -5,6 +5,7 @@ import '../models/models.dart';
 import '../theme/app_theme.dart';
 import '../widgets/common_widgets.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../contexts/auth_provider.dart';
 
 class NewOrdersScreen extends StatelessWidget {
   const NewOrdersScreen({super.key});
@@ -20,17 +21,25 @@ class NewOrdersScreen extends StatelessWidget {
       body: Column(
         children: [
           PageHeader(
-            title: 'New Orders',
-            subtitle: 'Incoming Kitchen Requests',
-            actions: [
-              HeaderIconButton(
-                icon: Icons.arrow_back,
-                onTap: () => Navigator.pop(context),
-              ),
-              const SizedBox(width: 8),
-              HeaderIconButton(icon: Icons.refresh, onTap: () {}),
-            ],
-          ),
+  title: 'New Orders',
+  subtitle: 'Incoming Kitchen Requests',
+  actions: [
+    HeaderIconButton(
+      icon: Icons.arrow_back,
+      onTap: () => Navigator.pop(context),
+    ),
+    const SizedBox(width: 8),
+    HeaderIconButton(
+      icon: Icons.refresh,
+      onTap: () {
+  final token = context.read<AuthProvider>().token;
+  if (token != null) {
+    context.read<OrdersProvider>().fetchOrders(token);
+  }
+},
+    ),
+  ],
+),
           Expanded(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -464,8 +473,8 @@ class _OrderCard extends StatelessWidget {
                 if (isNew)
                   GestureDetector(
                     onTap: () {
-                      provider.updateStatus(order.id, OrderStatus.confirmed);
-                      Navigator.pushNamed(
+                      final token = context.read<AuthProvider>().token;
+                      provider.updateOrderStatus(order.id, OrderStatus.confirmed, token!);                      Navigator.pushNamed(
                         context,
                         '/order-details',
                         arguments: order.id,

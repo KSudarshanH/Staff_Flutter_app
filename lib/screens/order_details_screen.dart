@@ -375,25 +375,37 @@ class _ActionButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final token = context.read<AuthProvider>().token;
+
+    if (token == null) {
+      return const Center(child: Text("Not authenticated"));
+    }
+
     switch (order.status) {
       case OrderStatus.confirmed:
         return PrimaryButton(
           label: 'Mark as Preparing',
           color: const Color(0xFF2563EB),
-          onTap: () => provider.updateStatus(order.id, OrderStatus.preparing),
+          onTap: () =>
+              provider.updateOrderStatus(order.id, OrderStatus.preparing, token),
         );
+
       case OrderStatus.preparing:
         return PrimaryButton(
           label: 'Mark as Ready',
           color: const Color(0xFF059669),
-          onTap: () => provider.updateStatus(order.id, OrderStatus.ready),
+          onTap: () =>
+              provider.updateOrderStatus(order.id, OrderStatus.ready, token),
         );
+
       case OrderStatus.ready:
         return PrimaryButton(
           label: 'Mark as Served',
           color: AppColors.slate700,
-          onTap: () => provider.updateStatus(order.id, OrderStatus.served),
+          onTap: () =>
+              provider.updateOrderStatus(order.id, OrderStatus.served, token),
         );
+
       case OrderStatus.served:
         final role = context.read<AuthProvider>().role;
         if (role == StaffRole.billingStaff) {
@@ -401,13 +413,14 @@ class _ActionButtons extends StatelessWidget {
             label: 'Generate Bill',
             color: AppColors.gold,
             textColor: AppColors.primary,
-            onTap: () {
-              provider.generateBill(order.id);
+            onTap: () async {
+              await provider.generateBill(order.id, token);
               Navigator.pushNamed(context, '/billing');
             },
           );
         }
         return const SizedBox.shrink();
+
       case OrderStatus.billed:
         final billingRole = context.read<AuthProvider>().role;
         if (billingRole == StaffRole.billingStaff) {
@@ -426,6 +439,7 @@ class _ActionButtons extends StatelessWidget {
           );
         }
         return const SizedBox.shrink();
+
       default:
         return const SizedBox.shrink();
     }

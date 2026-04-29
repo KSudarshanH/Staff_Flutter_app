@@ -285,11 +285,7 @@ class BillScreen extends StatelessWidget {
                                 onTap: () {
                                   final isBilling =
                                       auth.role == StaffRole.billingStaff;
-                                  Navigator.pushNamedAndRemoveUntil(
-                                    context,
-                                    isBilling ? '/billing' : '/dashboard',
-                                    (route) => false,
-                                  );
+                                  Navigator.pop(context); // go back cleanly
                                 },
                                 child: Container(
                                   width: double.infinity,

@@ -47,13 +47,13 @@ class _BillingScreenState extends State<BillingScreen> {
     final ordersProvider = context.watch<OrdersProvider>();
     // In actual app, we only show billed/paid or served items in billing
     final billingOrders = ordersProvider.orders
-        .where(
-          (o) =>
-              o.status == OrderStatus.served ||
-              o.status == OrderStatus.billed ||
-              o.status == OrderStatus.paid,
-        )
-        .toList();
+    .where(
+      (o) =>
+          o.status == OrderStatus.served ||
+          o.status == OrderStatus.billed ||
+          o.status == OrderStatus.paid,
+    )
+    .toList();
 
     final totalRevenue = billingOrders
         .where((o) => o.status == OrderStatus.paid)
@@ -333,8 +333,16 @@ class _BillingCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () =>
-          Navigator.pushNamed(context, '/payment', arguments: order.id),
+      onTap: () {
+  if (order.status == OrderStatus.served ||
+      order.status == OrderStatus.billed) {
+    Navigator.pushNamed(
+      context,
+      '/payment',
+      arguments: order.id,
+    );
+  }
+},
       child: Container(
         decoration: BoxDecoration(
           color: AppColors.white,

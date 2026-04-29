@@ -22,69 +22,87 @@ class RestaurantOSApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        // ✅ AuthProvider FIRST
         ChangeNotifierProvider(create: (_) => AuthProvider()),
+
+        // ✅ OrdersProvider (NO API CALL HERE)
         ChangeNotifierProvider(create: (_) => OrdersProvider()),
+
+        // ✅ TablesProvider
         ChangeNotifierProvider(create: (_) => TablesProvider()),
       ],
-      child: MaterialApp(
-        title: 'RestaurantOS',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.light,
-        scrollBehavior: const _NoGlowScrollBehavior(),
-        initialRoute: '/login',
-        onGenerateRoute: (settings) {
-          switch (settings.name) {
-            case '/login':
-              return MaterialPageRoute(builder: (_) => const LoginScreen());
+      child: Consumer<AuthProvider>(
+        builder: (context, auth, _) {
+          return MaterialApp(
+            title: 'RestaurantOS',
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.light,
+            scrollBehavior: const _NoGlowScrollBehavior(),
 
-            case '/dashboard':
-            case '/billing':
-              return MaterialPageRoute(builder: (_) => const MainScaffold());
+            // 🔥 AUTO ROUTE BASED ON LOGIN
+            initialRoute: auth.isLoggedIn ? '/dashboard' : '/login',
 
-            case '/new-orders':
-              return MaterialPageRoute(builder: (_) => const NewOrdersScreen());
+            onGenerateRoute: (settings) {
+              switch (settings.name) {
+                case '/login':
+                  return MaterialPageRoute(
+                      builder: (_) => const LoginScreen());
 
-            case '/orders':
-              return MaterialPageRoute(
-                builder: (_) => const MainScaffold(initialTab: 1),
-              );
+                case '/dashboard':
+                case '/billing':
+                  return MaterialPageRoute(
+                      builder: (_) => const MainScaffold());
 
-            case '/tables':
-              return MaterialPageRoute(
-                builder: (_) => const MainScaffold(initialTab: 2),
-              );
+                case '/new-orders':
+                  return MaterialPageRoute(
+                      builder: (_) => const NewOrdersScreen());
 
-            case '/profile':
-              return MaterialPageRoute(
-                builder: (_) => const MainScaffold(initialTab: 3),
-              );
+                case '/orders':
+                  return MaterialPageRoute(
+                    builder: (_) => const MainScaffold(initialTab: 1),
+                  );
 
-            case '/order-details':
-              final orderId = settings.arguments as String? ?? '';
-              return MaterialPageRoute(
-                builder: (_) => OrderDetailsScreen(orderId: orderId),
-              );
+                case '/tables':
+                  return MaterialPageRoute(
+                    builder: (_) => const MainScaffold(initialTab: 2),
+                  );
 
-            case '/payment':
-              final orderId = settings.arguments as String? ?? '';
-              return MaterialPageRoute(
-                builder: (_) => PaymentScreen(orderId: orderId),
-              );
+                case '/profile':
+                  return MaterialPageRoute(
+                    builder: (_) => const MainScaffold(initialTab: 3),
+                  );
 
-            case '/bill':
-              final args = settings.arguments as Map<String, dynamic>? ?? {};
-              return MaterialPageRoute(
-                builder: (_) => BillScreen(
-                  orderId: args['orderId'] as String? ?? '',
-                  tipAmount: args['tipAmount'] as int? ?? 0,
-                  finalTotal: args['finalTotal'] as int? ?? 0,
-                  paymentMethod: args['paymentMethod'] as String? ?? 'cash',
-                ),
-              );
+                case '/order-details':
+                  final orderId = settings.arguments as String? ?? '';
+                  return MaterialPageRoute(
+                    builder: (_) => OrderDetailsScreen(orderId: orderId),
+                  );
 
-            default:
-              return MaterialPageRoute(builder: (_) => const LoginScreen());
-          }
+                case '/payment':
+                  final orderId = settings.arguments as String? ?? '';
+                  return MaterialPageRoute(
+                    builder: (_) => PaymentScreen(orderId: orderId),
+                  );
+
+                case '/bill':
+                  final args =
+                      settings.arguments as Map<String, dynamic>? ?? {};
+                  return MaterialPageRoute(
+                    builder: (_) => BillScreen(
+                      orderId: args['orderId'] as String? ?? '',
+                      tipAmount: args['tipAmount'] as int? ?? 0,
+                      finalTotal: args['finalTotal'] as int? ?? 0,
+                      paymentMethod:
+                          args['paymentMethod'] as String? ?? 'cash',
+                    ),
+                  );
+
+                default:
+                  return MaterialPageRoute(
+                      builder: (_) => const LoginScreen());
+              }
+            },
+          );
         },
       ),
     );

@@ -362,7 +362,7 @@ class AppFilterChip extends StatelessWidget {
 // ─── Button Component ─────────────────────────────────────────────────────
 class PrimaryButton extends StatelessWidget {
   final String label;
-  final VoidCallback onTap;
+  final Future<void> Function()? onTap;
   final bool isLoading;
   final Color? color;
   final Color? textColor;
@@ -382,8 +382,13 @@ class PrimaryButton extends StatelessWidget {
     final textC = textColor ?? AppColors.white;
 
     return GestureDetector(
-      onTap: isLoading ? null : onTap,
-      child: AnimatedContainer(
+onTap: isLoading
+    ? null
+    : () async {
+        if (onTap != null) {
+          await onTap!();
+        }
+      },      child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         decoration: BoxDecoration(
