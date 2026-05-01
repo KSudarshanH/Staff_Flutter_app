@@ -1,21 +1,42 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import '../models/models.dart';
 
 class TablesProvider extends ChangeNotifier {
-  final List<TableModel> _tables = [
-    TableModel(id: 't1', name: 'Table 1', status: TableStatus.occupied, seats: 4, server: 'Amit'),
-    TableModel(id: 't2', name: 'Table 2', status: TableStatus.available, seats: 2),
-    TableModel(id: 't3', name: 'Table 3', status: TableStatus.occupied, seats: 6, server: 'Priya'),
-    TableModel(id: 't4', name: 'Table 4', status: TableStatus.needsBill, seats: 4, server: 'Rahul'),
-    TableModel(id: 't5', name: 'Table 5', status: TableStatus.available, seats: 4),
-    TableModel(id: 't6', name: 'Table 6', status: TableStatus.occupied, seats: 8, server: 'Sneha'),
-    TableModel(id: 't7', name: 'Table 7', status: TableStatus.reserved, seats: 6),
-    TableModel(id: 't8', name: 'Table 8', status: TableStatus.available, seats: 2),
-    TableModel(id: 't9', name: 'Table 9', status: TableStatus.needsBill, seats: 4, server: 'Vikram'),
-    TableModel(id: 't10', name: 'Table 10', status: TableStatus.available, seats: 6),
-    TableModel(id: 't11', name: 'Table 11', status: TableStatus.occupied, seats: 4, server: 'Amit'),
-    TableModel(id: 't12', name: 'Table 12', status: TableStatus.available, seats: 8),
-  ];
+  List<TableModel> _tables = [];
+  bool _isLoading = false;
 
   List<TableModel> get tables => List.unmodifiable(_tables);
+  bool get isLoading => _isLoading;
+
+  Future<void> fetchTables(String token) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final response = await http.get(
+        Uri.parse("https://pos-backend-s380.onrender.com/api/admin/tables"),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+        },
+      );
+
+      debugPrint("TablesProvider: Status ${response.statusCode}");
+      if (response.statusCode == 200) {
+        final decoded = json.decode(response.body);
+        final List tablesList = decoded['data'] ?? [];
+        _tables = tablesList.map((t) => TableModel.fromJson(t)).toList();
+        debugPrint("TablesProvider: Successfully loaded ${_tables.length} tables");
+      } else {
+        debugPrint("TablesProvider Error: ${response.statusCode} - ${response.body}");
+      }
+    } catch (e) {
+      debugPrint("Error fetching tables: $e");
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 }

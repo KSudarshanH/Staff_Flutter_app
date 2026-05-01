@@ -43,8 +43,8 @@ class OrdersProvider extends ChangeNotifier {
         },
       );
 
-      print("STATUS: ${response.statusCode}");
-      print("BODY: ${response.body}");
+      debugPrint("STATUS: ${response.statusCode}");
+      debugPrint("BODY: ${response.body}");
 
       if (response.statusCode == 200) {
         final decoded = json.decode(response.body);
@@ -55,10 +55,10 @@ _orders = ordersList
     .map((o) => Order.fromJson(o))
     .toList();
       } else {
-        print("Failed to load orders: ${response.body}");
+        debugPrint("Failed to load orders: ${response.body}");
       }
     } catch (e) {
-      print("ERROR: $e");
+      debugPrint("ERROR: $e");
     }
 
     _isLoading = false;
@@ -82,7 +82,7 @@ _orders = ordersList
       // refresh after update
       await fetchOrders(token);
     } catch (e) {
-      print("Update error: $e");
+      debugPrint("Update error: $e");
     }
   }
 
@@ -106,8 +106,8 @@ _orders = ordersList
       }),
     );
 
-    print("BILLED STATUS: ${billedResponse.statusCode}");
-    print("BILLED BODY: ${billedResponse.body}");
+    debugPrint("BILLED STATUS: ${billedResponse.statusCode}");
+    debugPrint("BILLED BODY: ${billedResponse.body}");
 
     // 🔥 STEP 2 → BILLED → PAID
     final paidResponse = await http.patch(
@@ -123,17 +123,45 @@ _orders = ordersList
       }),
     );
 
-    print("PAID STATUS: ${paidResponse.statusCode}");
-    print("PAID BODY: ${paidResponse.body}");
+    debugPrint("PAID STATUS: ${paidResponse.statusCode}");
+    debugPrint("PAID BODY: ${paidResponse.body}");
 
     // 🔥 REFRESH UI
     if (paidResponse.statusCode == 200) {
       await fetchOrders(token);
     }
   } catch (e) {
-    print("PAY ERROR: $e");
+    debugPrint("PAY ERROR: $e");
   }
 }
 
-  
+  Future<void> createOrder(Map<String, dynamic> body, String token) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final response = await http.post(
+        Uri.parse("https://pos-backend-s380.onrender.com/api/admin/orders"),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+        },
+        body: json.encode(body),
+      );
+
+      debugPrint("CREATE ORDER STATUS: ${response.statusCode}");
+      debugPrint("CREATE ORDER BODY: ${response.body}");
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        await fetchOrders(token);
+      } else {
+        throw Exception("Failed to create order");
+      }
+    } catch (e) {
+      debugPrint("Create Order Error: $e");
+      _isLoading = false;
+      notifyListeners();
+      rethrow;
+    }
+  }
 }

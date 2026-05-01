@@ -415,6 +415,7 @@ class _ActionButtons extends StatelessWidget {
             textColor: AppColors.primary,
             onTap: () async {
               await provider.generateBill(order.id, token);
+              if (!context.mounted) return;
               Navigator.pushNamed(context, '/billing');
             },
           );

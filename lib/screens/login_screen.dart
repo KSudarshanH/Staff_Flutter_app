@@ -14,12 +14,6 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  String _loginType = 'admin';
-
-  // Admin Form Data
-  final _adminEmailController = TextEditingController();
-  final _adminPasswordController = TextEditingController();
-
   // Staff Form Data
   final _staffIdController = TextEditingController();
   final _staffPasswordController = TextEditingController();
@@ -30,26 +24,14 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   void dispose() {
-    _adminEmailController.dispose();
-    _adminPasswordController.dispose();
     _staffIdController.dispose();
     _staffPasswordController.dispose();
     super.dispose();
   }
 
   Future<void> _handleLogin() async {
-  setState(() => _error = null);
+    setState(() => _error = null);
 
-  if (_loginType == 'admin') {
-    if (_adminEmailController.text.isEmpty ||
-        _adminPasswordController.text.isEmpty) {
-      setState(() => _error = 'Please fill in all fields');
-      return;
-    }
-
-    setState(() =>
-        _error = 'Admin login is available on Web Portal only.');
-  } else {
     if (_staffIdController.text.isEmpty ||
         _staffPasswordController.text.isEmpty) {
       setState(() => _error = 'Please fill in all fields');
@@ -90,7 +72,6 @@ class _LoginScreenState extends State<LoginScreen> {
           _error = 'Login failed. Please check your credentials.');
     }
   }
-}
 
   @override
   Widget build(BuildContext context) {
@@ -158,7 +139,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         children: [
                           // Title and Tabs
                           Text(
-                            'Portal Access',
+                            'Staff Login',
                             style: AppTheme.serif(
                               size: 30, // text-3xl
                               weight: FontWeight.bold,
@@ -166,31 +147,13 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
                           const SizedBox(height: 16),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              _TabButton(
-                                label: 'Admin Login',
-                                isActive: _loginType == 'admin',
-                                onTap: () {
-                                  setState(() {
-                                    _loginType = 'admin';
-                                    _error = null;
-                                  });
-                                },
-                              ),
-                              const SizedBox(width: 16), // gap-4
-                              _TabButton(
-                                label: 'Staff Login',
-                                isActive: _loginType == 'staff',
-                                onTap: () {
-                                  setState(() {
-                                    _loginType = 'staff';
-                                    _error = null;
-                                  });
-                                },
-                              ),
-                            ],
+                          const SizedBox(height: 8),
+                          Text(
+                            'Access your staff dashboard',
+                            style: AppTheme.sans(
+                              size: 14,
+                              color: AppColors.slate500,
+                            ),
                           ),
                           const SizedBox(height: 32), // mb-8
 
@@ -201,98 +164,77 @@ class _LoginScreenState extends State<LoginScreen> {
                                 _error!,
                                 style: AppTheme.sans(
                                   size: 14,
-                                  color: AppColors.red600,
+                                  color: AppColors.danger,
                                 ),
                                 textAlign: TextAlign.center,
                               ),
                             ),
 
                           // Form Fields
-                          if (_loginType == 'admin') ...[
-                            _InputGroup(
-                              label: 'Email',
-                              hint: 'Enter your email',
-                              controller: _adminEmailController,
-                              keyboardType: TextInputType.emailAddress,
-                            ),
-                            const SizedBox(height: 24),
-                            _InputGroup(
-                              label: 'Password',
-                              hint: 'Enter password',
-                              controller: _adminPasswordController,
-                              obscureText: _obscurePassword,
-                              onToggleVisibility: () {
-                                setState(() {
-                                  _obscurePassword = !_obscurePassword;
-                                });
-                              },
-                            ),
-                          ] else ...[
-                            // Role Selector
-                            SizedBox(
-                              width: double.infinity,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Role',
-                                    style: AppTheme.sans(
-                                      size: 14,
-                                      weight: FontWeight.w600,
-                                      color: AppColors.slate900,
-                                    ),
+                          // Role Selector
+                          SizedBox(
+                            width: double.infinity,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Role',
+                                  style: AppTheme.sans(
+                                    size: 14,
+                                    weight: FontWeight.w600,
+                                    color: AppColors.slate900,
                                   ),
-                                  const SizedBox(height: 8),
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        child: _RoleButton(
-                                          label: 'Serving Staff',
-                                          isSelected: _selectedRole ==
+                                ),
+                                const SizedBox(height: 8),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: _RoleButton(
+                                        label: 'Serving Staff',
+                                        isSelected: _selectedRole ==
+                                            StaffRole.servingStaff,
+                                        onTap: () => setState(
+                                          () => _selectedRole =
                                               StaffRole.servingStaff,
-                                          onTap: () => setState(
-                                            () => _selectedRole =
-                                                StaffRole.servingStaff,
-                                          ),
                                         ),
                                       ),
-                                      const SizedBox(width: 16),
-                                      Expanded(
-                                        child: _RoleButton(
-                                          label: 'Billing Staff',
-                                          isSelected: _selectedRole ==
+                                    ),
+                                    const SizedBox(width: 16),
+                                    Expanded(
+                                      child: _RoleButton(
+                                        label: 'Billing Staff',
+                                        isSelected: _selectedRole ==
+                                            StaffRole.billingStaff,
+                                        onTap: () => setState(
+                                          () => _selectedRole =
                                               StaffRole.billingStaff,
-                                          onTap: () => setState(
-                                            () => _selectedRole =
-                                                StaffRole.billingStaff,
-                                          ),
                                         ),
                                       ),
-                                    ],
-                                  ),
-                                ],
-                              ),
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
-                            const SizedBox(height: 24),
-                            _InputGroup(
-                              label: 'Email',
-                              hint: 'Enter your email',
-                              controller: _staffIdController,
-                              keyboardType: TextInputType.emailAddress,
-                            ),
-                            const SizedBox(height: 24),
-                            _InputGroup(
-                              label: 'Password',
-                              hint: 'Enter password',
-                              controller: _staffPasswordController,
-                              obscureText: _obscurePassword,
-                              onToggleVisibility: () {
-                                setState(() {
-                                  _obscurePassword = !_obscurePassword;
-                                });
-                              },
-                            ),
-                          ],
+                          ),
+                          const SizedBox(height: 24),
+                          _InputGroup(
+                            label: 'Email',
+                            hint: 'Enter your email',
+                            controller: _staffIdController,
+                            keyboardType: TextInputType.emailAddress,
+                          ),
+                          const SizedBox(height: 24),
+                          _InputGroup(
+                            label: 'Password',
+                            hint: 'Enter password',
+                            controller: _staffPasswordController,
+                            obscureText: _obscurePassword,
+                            onToggleVisibility: () {
+                              setState(() {
+                                _obscurePassword = !_obscurePassword;
+                              });
+                            },
+                          ),
                           const SizedBox(height: 24),
 
                           // Login Button
@@ -333,7 +275,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                       ),
                                     )
                                   : Text(
-                                      'Login as ${_loginType == 'admin' ? 'Admin' : 'Staff'}',
+                                      'Login',
                                       textAlign: TextAlign.center,
                                       style: AppTheme.sans(
                                         size: 14,
@@ -374,53 +316,6 @@ class _LoginScreenState extends State<LoginScreen> {
 }
 
 // ─── Reusable Widgets ─────────────────────────────────────────────────────────
-
-class _TabButton extends StatelessWidget {
-  final String label;
-  final bool isActive;
-  final VoidCallback onTap;
-
-  const _TabButton({
-    required this.label,
-    required this.isActive,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: isActive ? AppColors.primary : AppColors.ivory,
-          borderRadius: BorderRadius.circular(9999), // rounded-full
-          border: Border.all(
-            color: isActive ? Colors.transparent : AppColors.gold.withValues(alpha: 0.3),
-          ),
-          boxShadow: isActive
-              ? [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.1),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  )
-                ]
-              : null,
-        ),
-        child: Text(
-          label,
-          style: AppTheme.sans(
-            size: 14,
-            weight: FontWeight.w600,
-            color: isActive ? AppColors.white : AppColors.slate500,
-          ),
-        ),
-      ),
-    );
-  }
-}
 
 class _RoleButton extends StatelessWidget {
   final String label;

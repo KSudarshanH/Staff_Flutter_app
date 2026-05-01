@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'contexts/auth_provider.dart';
+import 'models/models.dart';
 import 'contexts/orders_provider.dart';
 import 'contexts/tables_provider.dart';
 import 'theme/app_theme.dart';
@@ -10,6 +11,9 @@ import 'screens/new_orders_screen.dart';
 import 'screens/order_details_screen.dart';
 import 'screens/payment_screen.dart';
 import 'screens/bill_screen.dart';
+
+import 'contexts/menu_provider.dart';
+import 'screens/create_order_screen.dart';
 
 void main() {
   runApp(const RestaurantOSApp());
@@ -30,6 +34,9 @@ class RestaurantOSApp extends StatelessWidget {
 
         // ✅ TablesProvider
         ChangeNotifierProvider(create: (_) => TablesProvider()),
+
+        // ✅ MenuProvider
+        ChangeNotifierProvider(create: (_) => MenuProvider()),
       ],
       child: Consumer<AuthProvider>(
         builder: (context, auth, _) {
@@ -40,67 +47,88 @@ class RestaurantOSApp extends StatelessWidget {
             scrollBehavior: const _NoGlowScrollBehavior(),
 
             // 🔥 AUTO ROUTE BASED ON LOGIN
-            initialRoute: auth.isLoggedIn ? '/dashboard' : '/login',
+            initialRoute: !auth.isLoggedIn 
+                ? '/login' 
+                : (auth.role == StaffRole.billingStaff ? '/billing' : '/dashboard'),
 
             onGenerateRoute: (settings) {
+              Widget page;
               switch (settings.name) {
                 case '/login':
-                  return MaterialPageRoute(
-                      builder: (_) => const LoginScreen());
+                  page = const LoginScreen();
+                  break;
 
                 case '/dashboard':
                 case '/billing':
-                  return MaterialPageRoute(
-                      builder: (_) => const MainScaffold());
+                  page = const MainScaffold();
+                  break;
 
                 case '/new-orders':
-                  return MaterialPageRoute(
-                      builder: (_) => const NewOrdersScreen());
+                  page = const NewOrdersScreen();
+                  break;
+
+                case '/create-order':
+                  page = const CreateOrderScreen();
+                  break;
 
                 case '/orders':
-                  return MaterialPageRoute(
-                    builder: (_) => const MainScaffold(initialTab: 1),
-                  );
+                  page = const MainScaffold(initialTab: 1);
+                  break;
 
                 case '/tables':
-                  return MaterialPageRoute(
-                    builder: (_) => const MainScaffold(initialTab: 2),
-                  );
+                  page = const MainScaffold(initialTab: 2);
+                  break;
 
                 case '/profile':
-                  return MaterialPageRoute(
-                    builder: (_) => const MainScaffold(initialTab: 3),
-                  );
+                  page = const MainScaffold(initialTab: 3);
+                  break;
 
                 case '/order-details':
                   final orderId = settings.arguments as String? ?? '';
-                  return MaterialPageRoute(
-                    builder: (_) => OrderDetailsScreen(orderId: orderId),
-                  );
+                  page = OrderDetailsScreen(orderId: orderId);
+                  break;
 
                 case '/payment':
                   final orderId = settings.arguments as String? ?? '';
-                  return MaterialPageRoute(
-                    builder: (_) => PaymentScreen(orderId: orderId),
-                  );
+                  page = PaymentScreen(orderId: orderId);
+                  break;
 
                 case '/bill':
                   final args =
                       settings.arguments as Map<String, dynamic>? ?? {};
-                  return MaterialPageRoute(
-                    builder: (_) => BillScreen(
-                      orderId: args['orderId'] as String? ?? '',
-                      tipAmount: args['tipAmount'] as int? ?? 0,
-                      finalTotal: args['finalTotal'] as int? ?? 0,
-                      paymentMethod:
-                          args['paymentMethod'] as String? ?? 'cash',
-                    ),
+                  page = BillScreen(
+                    orderId: args['orderId'] as String? ?? '',
+                    tipAmount: args['tipAmount'] as int? ?? 0,
+                    finalTotal: args['finalTotal'] as int? ?? 0,
+                    paymentMethod:
+                        args['paymentMethod'] as String? ?? 'cash',
                   );
+                  break;
 
                 default:
-                  return MaterialPageRoute(
-                      builder: (_) => const LoginScreen());
+                  page = const LoginScreen();
               }
+
+              return PageRouteBuilder(
+                pageBuilder: (context, animation, secondaryAnimation) => page,
+                transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                  const begin = Offset(0.05, 0.0);
+                  const end = Offset.zero;
+                  const curve = Curves.easeOutCubic;
+
+                  var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                  var offsetAnimation = animation.drive(tween);
+
+                  return FadeTransition(
+                    opacity: animation,
+                    child: SlideTransition(
+                      position: offsetAnimation,
+                      child: child,
+                    ),
+                  );
+                },
+                transitionDuration: const Duration(milliseconds: 400),
+              );
             },
           );
         },

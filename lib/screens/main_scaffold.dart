@@ -95,7 +95,7 @@ class _MainScaffoldState extends State<MainScaffold> {
                   currentIndex: safeIndex,
                   onTap: (idx) => setState(() => _currentIndex = idx),
                   roleName: isBilling ? 'Billing Staff' : 'Serving Staff',
-                  initials: user?.name.substring(0, 1).toUpperCase() ?? 'S',
+                  initials: (user?.name.isNotEmpty == true) ? user!.name.substring(0, 1).toUpperCase() : 'S',
                 ),
                 // Main content
                 Expanded(child: navItems[safeIndex].screen),

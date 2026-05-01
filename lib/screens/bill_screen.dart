@@ -191,8 +191,13 @@ class BillScreen extends StatelessWidget {
                                       mono: true,
                                     ),
                                     const SizedBox(height: 10),
-                                    if (order != null)
+                                    if (order != null) ...[
                                       _ReceiptRow('Table', order.table),
+                                      if (order.customerName != null) ...[
+                                        const SizedBox(height: 10),
+                                        _ReceiptRow('Customer', order.customerName!),
+                                      ],
+                                    ],
                                     const SizedBox(height: 10),
                                     _ReceiptRow('Date', _formatDate()),
                                     const SizedBox(height: 10),
@@ -236,13 +241,17 @@ class BillScreen extends StatelessWidget {
                                   ),
                                 ),
                                 const Divider(height: 20),
-                                _BreakdownRow(
-                                  'Subtotal',
-                                  '₹${order.subtotal.round()}',
-                                ),
-                                const SizedBox(height: 6),
-                                _BreakdownRow('Tax', '₹${order.tax.round()}'),
-                                const SizedBox(height: 6),
+                                if (order.subtotal > 0) ...[
+                                  _BreakdownRow(
+                                    'Subtotal',
+                                    '₹${order.subtotal.round()}',
+                                  ),
+                                  const SizedBox(height: 6),
+                                ],
+                                if (order.tax > 0) ...[
+                                  _BreakdownRow('Tax', '₹${order.tax.round()}'),
+                                  const SizedBox(height: 6),
+                                ],
                                 _BreakdownRow('Tip', '₹$tipAmount'),
                                 const Divider(height: 16),
                                 Row(
@@ -283,8 +292,6 @@ class BillScreen extends StatelessWidget {
                               const SizedBox(height: 12),
                               GestureDetector(
                                 onTap: () {
-                                  final isBilling =
-                                      auth.role == StaffRole.billingStaff;
                                   Navigator.pop(context); // go back cleanly
                                 },
                                 child: Container(
@@ -367,7 +374,11 @@ class BillScreen extends StatelessWidget {
 
               // Bill info
               _pdfInfoRow('Bill Number', billNumber),
-              if (order != null) _pdfInfoRow('Table', order.table),
+              if (order != null) ...[
+                _pdfInfoRow('Table', order.table),
+                if (order.customerName != null) 
+                  _pdfInfoRow('Customer', order.customerName!),
+              ],
               _pdfInfoRow('Date', _formatDate()),
               _pdfInfoRow('Payment Method', paymentMethod.toUpperCase()),
 
@@ -451,9 +462,9 @@ class BillScreen extends StatelessWidget {
                 // Totals
                 pw.Container(height: 1, color: PdfColors.grey400),
                 pw.SizedBox(height: 10),
-                _pdfInfoRow('Subtotal', '${order.subtotal.round()}'),
-                _pdfInfoRow('Tax', '${order.tax.round()}'),
-                _pdfInfoRow('Tip', '$tipAmount'),
+                if (order.subtotal > 0) _pdfInfoRow('Subtotal', '${order.subtotal.round()}'),
+                if (order.tax > 0) _pdfInfoRow('Tax', '${order.tax.round()}'),
+                if (tipAmount > 0) _pdfInfoRow('Tip', '$tipAmount'),
                 pw.SizedBox(height: 6),
                 pw.Container(height: 1, color: PdfColors.grey400),
                 pw.SizedBox(height: 6),

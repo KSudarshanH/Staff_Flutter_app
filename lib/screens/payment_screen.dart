@@ -84,7 +84,101 @@ class _PaymentScreenState extends State<PaymentScreen> {
               padding: const EdgeInsets.all(20),
               child: Column(
                 children: [
+                  // 🔥 ORDER DETAILS
+                  AppCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Order Details',
+                          style: AppTheme.serif(
+                            size: 18,
+                            weight: FontWeight.w700,
+                            color: AppColors.slate900,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        if (order.customerName != null) ...[
+                          _InfoRow(
+                            icon: Icons.person_outline,
+                            label: 'Customer',
+                            value: order.customerName!,
+                          ),
+                          const Divider(height: 20),
+                        ],
+                        _InfoRow(
+                          icon: Icons.table_restaurant_outlined,
+                          label: 'Table',
+                          value: order.table,
+                        ),
+                        const Divider(height: 20),
+                        _InfoRow(
+                          icon: Icons.access_time,
+                          label: 'Time',
+                          value: order.time,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // 🔥 ORDER ITEMS
+                  AppCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Items',
+                          style: AppTheme.serif(
+                            size: 18,
+                            weight: FontWeight.w700,
+                            color: AppColors.slate900,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        ...order.itemsDetails.map(
+                          (item) => Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '${item.quantity}x',
+                                  style: AppTheme.sans(
+                                    size: 14,
+                                    weight: FontWeight.w800,
+                                    color: AppColors.primary,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    item.name,
+                                    style: AppTheme.sans(
+                                      size: 14,
+                                      color: AppColors.slate700,
+                                    ),
+                                  ),
+                                ),
+                                Text(
+                                  '₹${(item.quantity * (double.tryParse(item.price) ?? 0)).round()}',
+                                  style: AppTheme.sans(
+                                    size: 14,
+                                    weight: FontWeight.w700,
+                                    color: AppColors.slate900,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
                   // 🔥 TOTAL CARD (CENTERED - FIXED)
+
                   AppCard(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
@@ -103,8 +197,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
                         ),
                         const SizedBox(height: 20),
 
-                        _AmountRow('Subtotal', '₹${order.subtotal.round()}'),
-                        _AmountRow('Tax', '₹${order.tax.round()}'),
+                        if (order.subtotal > 0) _AmountRow('Subtotal', '₹${order.subtotal.round()}'),
+                        if (order.tax > 0) _AmountRow('Tax', '₹${order.tax.round()}'),
 
                         const SizedBox(height: 10),
                         const Divider(),
@@ -152,12 +246,12 @@ class _PaymentScreenState extends State<PaymentScreen> {
                             padding: const EdgeInsets.all(14),
                             decoration: BoxDecoration(
                               color: isSelected
-                                  ? Colors.red.shade50
-                                  : Colors.white,
+                                  ? AppColors.dangerLight
+                                  : AppColors.white,
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
                                 color: isSelected
-                                    ? Colors.red
+                                    ? AppColors.danger
                                     : Colors.grey.shade300,
                                 width: isSelected ? 2 : 1,
                               ),
@@ -167,7 +261,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                                 Icon(
                                   m['icon'] as IconData,
                                   color: isSelected
-                                      ? Colors.red
+                                      ? AppColors.danger
                                       : Colors.grey,
                                 ),
                                 const SizedBox(width: 12),
@@ -184,7 +278,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                                 ),
                                 if (isSelected)
                                   const Icon(Icons.check_circle,
-                                      color: Colors.red),
+                                      color: AppColors.danger),
                               ],
                             ),
                           ),
@@ -240,7 +334,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
     try {
       await provider.payOrder(widget.orderId, token);
 
-      if (!mounted) return;
+      if (!context.mounted) return;
 
       Navigator.pushReplacementNamed(
         context,
@@ -253,7 +347,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
         },
       );
     } catch (e) {
-      print("Payment error: $e");
+      debugPrint("Payment error: $e");
     }
 
     if (mounted) {
@@ -279,6 +373,42 @@ class _AmountRow extends StatelessWidget {
           value,
           style: TextStyle(
             fontWeight: bold ? FontWeight.bold : FontWeight.normal,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _InfoRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+
+  const _InfoRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, color: AppColors.slate400, size: 18),
+        const SizedBox(width: 10),
+        Text(label, style: AppTheme.sans(size: 13, color: AppColors.slate500)),
+        const Spacer(),
+        Expanded(
+          child: Text(
+            value,
+            textAlign: TextAlign.end,
+            style: AppTheme.sans(
+              size: 14,
+              weight: FontWeight.w700,
+              color: AppColors.slate900,
+            ),
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],

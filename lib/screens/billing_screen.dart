@@ -21,22 +21,22 @@ class _BillingScreenState extends State<BillingScreen> {
       case OrderStatus.billed:
         return {
           'label': 'BILLED',
-          'bg': const Color(0xFFFEF3C7),
-          'color': const Color(0xFFD97706),
+          'bg': AppColors.warningLight,
+          'color': AppColors.warning,
           'icon': Icons.access_time,
         };
       case OrderStatus.paid:
         return {
           'label': 'PAID',
-          'bg': const Color(0xFFD1FAE5),
-          'color': const Color(0xFF059669),
+          'bg': AppColors.successLight,
+          'color': AppColors.success,
           'icon': Icons.check_circle_outline,
         };
       default:
         return {
           'label': 'PENDING',
-          'bg': const Color(0xFFFFFBEB),
-          'color': const Color(0xFFD97706),
+          'bg': AppColors.warningLight,
+          'color': AppColors.warning,
           'icon': Icons.pending_actions,
         };
     }
@@ -134,23 +134,23 @@ class _BillingScreenState extends State<BillingScreen> {
                   children: [
                     StatCard(
                       icon: Icons.account_balance_wallet,
-                      iconColor: const Color(0xFFD97706),
-                      iconBg: const Color(0xFFFFFBEB),
+                      iconColor: AppColors.warning,
+                      iconBg: AppColors.warningLight,
                       label: 'Total Revenue',
                       value: '₹${grandTotal.round()}',
                     ),
                     StatCard(
                       icon: Icons.payments,
-                      iconColor: const Color(0xFF059669),
-                      iconBg: const Color(0xFFECFDF5),
+                      iconColor: AppColors.success,
+                      iconBg: AppColors.successLight,
                       label: 'Collected',
                       value: '₹${totalRevenue.round()}',
                     ),
                     if (isWide && constraints.maxWidth >= 1024)
                       StatCard(
                         icon: Icons.access_time,
-                        iconColor: const Color(0xFFF59E0B),
-                        iconBg: const Color(0xFFFFFBEB),
+                        iconColor: AppColors.warning,
+                        iconBg: AppColors.warningLight,
                         label: 'Billed',
                         value: '₹${totalBilled.round()}',
                       ),

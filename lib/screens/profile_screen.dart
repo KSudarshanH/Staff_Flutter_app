@@ -160,13 +160,21 @@ class ProfileScreen extends StatelessWidget {
                         _ProfileRow(
                           icon: Icons.restaurant_outlined,
                           label: 'Restaurant',
-                          value: 'RestaurantOS',
+                          value: user?.restaurantName ?? 'RestaurantOS',
                         ),
                         const SizedBox(height: 16),
+                        if (user?.phone != null) ...[
+                          _ProfileRow(
+                            icon: Icons.phone_outlined,
+                            label: 'Phone',
+                            value: user!.phone!,
+                          ),
+                          const SizedBox(height: 16),
+                        ],
                         _ProfileRow(
                           icon: Icons.calendar_today_outlined,
                           label: 'Joined On',
-                          value: _formatDate(),
+                          value: _formatDate(user?.createdAt),
                         ),
                       ],
                     ),
@@ -254,17 +262,17 @@ class ProfileScreen extends StatelessWidget {
                               vertical: 12,
                             ),
                             decoration: BoxDecoration(
-                              color: AppColors.red50,
+                              color: AppColors.dangerLight,
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
-                                color: AppColors.red600.withValues(alpha: 0.2),
+                                color: AppColors.danger.withValues(alpha: 0.2),
                               ),
                             ),
                             child: Row(
                               children: [
                                 const Icon(
                                   Icons.logout,
-                                  color: AppColors.red600,
+                                  color: AppColors.danger,
                                   size: 18,
                                 ),
                                 const SizedBox(width: 8),
@@ -273,7 +281,7 @@ class ProfileScreen extends StatelessWidget {
                                   style: AppTheme.sans(
                                     size: 14,
                                     weight: FontWeight.w700,
-                                    color: AppColors.red600,
+                                    color: AppColors.danger,
                                   ),
                                 ),
                               ],
@@ -292,8 +300,8 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  String _formatDate() {
-    final now = DateTime.now();
+  String _formatDate([DateTime? date]) {
+    final now = date ?? DateTime.now();
     return '${now.day} ${_month(now.month)} ${now.year}';
   }
 

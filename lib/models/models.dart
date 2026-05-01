@@ -11,7 +11,7 @@ enum OrderStatus {
   cancelled,
 }
 
-enum TableStatus { available, occupied, reserved, needsBill }
+enum TableStatus { available, occupied }
 
 // ---------------- STATUS EXTENSION ----------------
 extension OrderStatusX on OrderStatus {
@@ -107,7 +107,7 @@ class Order {
       );
     }
 
-    return Order(
+    final order = Order(
       id: json['id'] ?? '',
 
       orderNumber: (json['id'] ?? '')
@@ -144,6 +144,33 @@ class Order {
               ))
           .toList(),
     );
+
+    if (order.subtotal == 0 && order.itemsDetails.isNotEmpty) {
+      double calcSubtotal = order.itemsDetails.fold(0.0, (sum, item) => sum + item.total);
+      double calcTotal = order.total > 0 ? order.total : calcSubtotal;
+      double calcTax = calcTotal > calcSubtotal ? calcTotal - calcSubtotal : 0.0;
+      
+      // If total was 0, let's assume standard 5% tax or just no tax for safety if total wasn't provided?
+      // Since it's a display fix, if total was 0, let's just make total = subtotal
+      
+      return Order(
+        id: order.id,
+        orderNumber: order.orderNumber,
+        table: order.table,
+        customerName: order.customerName,
+        items: order.items,
+        total: calcTotal,
+        subtotal: calcSubtotal,
+        tax: calcTax,
+        status: order.status,
+        time: order.time,
+        createdAt: order.createdAt,
+        itemsPreview: order.itemsPreview,
+        itemsDetails: order.itemsDetails,
+      );
+    }
+
+    return order;
   }
 
   // ---------------- TIME FORMAT ----------------
@@ -195,6 +222,24 @@ class TableModel {
     required this.seats,
     this.server,
   });
+
+  factory TableModel.fromJson(Map<String, dynamic> json) {
+    final statusStr = (json['table_status'] ?? json['status'] ?? '').toString().toUpperCase();
+    TableStatus status;
+    if (statusStr == 'AVAILABLE' || statusStr == 'EMPTY' || statusStr == 'FREE') {
+      status = TableStatus.available;
+    } else {
+      // Anything else (Occupied, Busy, Reserved, Needs Bill, etc.) is considered 'occupied'
+      status = TableStatus.occupied;
+    }
+    return TableModel(
+      id: (json['id'] ?? json['_id'] ?? '').toString(),
+      name: (json['table_number'] ?? json['tableNumber'] ?? json['name'] ?? 'Table').toString(),
+      status: status,
+      seats: int.tryParse(json['capacity']?.toString() ?? json['seats']?.toString() ?? '4') ?? 4,
+      server: json['current_server_name'] ?? json['server'],
+    );
+  }
 }
 
 // ---------------- STAFF USER ----------------
@@ -203,11 +248,49 @@ class StaffUser {
   final String name;
   final String email;
   final StaffRole role;
+  final String? phone;
+  final String? restaurantName;
+  final DateTime? createdAt;
 
   StaffUser({
     required this.id,
     required this.name,
     required this.email,
     required this.role,
+    this.phone,
+    this.restaurantName,
+    this.createdAt,
+  });
+
+  factory StaffUser.fromJson(Map<String, dynamic> json) {
+    final createdAtRaw = json['created_at'] ?? json['createdAt'];
+    return StaffUser(
+      id: json['id'] ?? '',
+      name: json['name'] ?? '',
+      email: json['email'] ?? '',
+      role: json['role'] == 'SERVING_STAFF'
+          ? StaffRole.servingStaff
+          : StaffRole.billingStaff,
+      phone: json['phone']?.toString(),
+      restaurantName: json['restaurant_name']?.toString(),
+      createdAt: createdAtRaw != null ? DateTime.tryParse(createdAtRaw.toString()) : null,
+    );
+  }
+}
+
+// ---------------- MENU ITEM ----------------
+class MenuItem {
+  final String id;
+  final String name;
+  final double price;
+  final String category;
+  final bool isAvailable;
+
+  MenuItem({
+    required this.id,
+    required this.name,
+    required this.price,
+    required this.category,
+    this.isAvailable = true,
   });
 }

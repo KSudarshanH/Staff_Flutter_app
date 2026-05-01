@@ -5,7 +5,6 @@ import '../models/models.dart';
 import '../theme/app_theme.dart';
 import '../widgets/common_widgets.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import '../contexts/auth_provider.dart';
 
 class OrdersScreen extends StatefulWidget {
   const OrdersScreen({super.key});
@@ -119,8 +118,8 @@ class _OrdersScreenState extends State<OrdersScreen> {
             subtitle: 'Manage Real-time Dining Service',
             actions: [
               PrimaryButton(
-                label: 'New Order',
-                onTap: () => Navigator.pushNamed(context, '/new-orders'),
+                label: 'Create Order',
+                onTap: () => Navigator.pushNamed(context, '/create-order'),
                 color: AppColors.gold,
                 textColor: AppColors.white,
               ),
@@ -169,7 +168,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                               : 1, // lg: 3, md: 2, default: 1
                           crossAxisSpacing: 24,
                           mainAxisSpacing: 24,
-                          childAspectRatio: 1.5, // Approx height for order card
+                          childAspectRatio: 1.15, // Further increased height to avoid overflow
                         ),
                         itemCount: filteredOrders.length,
                         itemBuilder: (context, index) {
@@ -310,139 +309,159 @@ class _OrderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return AppCard(
+      padding: EdgeInsets.zero,
       onTap: () =>
           Navigator.pushNamed(context, '/order-details', arguments: order.id),
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.slate100),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: Column(
-          children: [
-            // Status Banner
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-              color: config['bg'] as Color,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Row(
-                      children: [
-                        Icon(
-                          config['icon'] as IconData,
-                          size: 28,
+      child: Column(
+        children: [
+          // Status Banner
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+            color: (config['bg'] as Color).withValues(alpha: 0.5),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.white,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    config['icon'] as IconData,
+                    size: 20,
+                    color: config['color'] as Color,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        config['label'] as String,
+                        style: AppTheme.sans(
+                          size: 13,
+                          weight: FontWeight.w900,
                           color: config['color'] as Color,
+                          letterSpacing: 1.0,
                         ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                config['label'] as String,
-                                style: AppTheme.sans(
-                                  size: 18,
-                                  weight: FontWeight.w900,
-                                  color: config['color'] as Color,
-                                ).copyWith(letterSpacing: 0.5),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              Text(
-                                order.time,
-                                style: AppTheme.sans(
-                                  size: 14,
-                                  color: (config['color'] as Color).withValues(
-                                    alpha: 0.8,
-                                  ),
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
+                      ),
+                      Text(
+                        order.time,
+                        style: AppTheme.sans(
+                          size: 12,
+                          weight: FontWeight.w600,
+                          color: (config['color'] as Color).withValues(alpha: 0.7),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  Icons.arrow_forward_ios,
+                  size: 14,
+                  color: (config['color'] as Color).withValues(alpha: 0.5),
+                ),
+              ],
+            ),
+          ),
+
+          // Content
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withValues(alpha: 0.05),
+                            borderRadius: BorderRadius.circular(12),
                           ),
+                          child: Icon(
+                            Icons.table_bar_rounded,
+                            size: 22,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              order.table,
+                              style: AppTheme.serif(
+                                size: 18,
+                                weight: FontWeight.w800,
+                                color: AppColors.slate900,
+                              ),
+                            ),
+                            Text(
+                              '${order.items} items ordered',
+                              style: AppTheme.sans(
+                                size: 13,
+                                color: AppColors.slate500,
+                                weight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                  ),
-                  Icon(
-                    Icons.chevron_right,
-                    size: 24,
-                    color: config['color'] as Color,
-                  ),
-                ],
-              ),
-            ),
-
-            // Content
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Icon(
-                            Icons.restaurant,
-                            size: 32,
-                            color: AppColors.primary,
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  order.table,
-                                  style: AppTheme.sans(
-                                    size: 20,
-                                    weight: FontWeight.w700,
-                                    color: AppColors.slate900,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  '${order.items} items',
-                                  style: AppTheme.sans(
-                                    size: 14,
-                                    color: AppColors.slate500,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
                     Text(
                       '₹${order.total.round()}',
-                      style: AppTheme.sans(
-                        size: 24,
+                      style: AppTheme.serif(
+                        size: 22,
                         weight: FontWeight.w900,
                         color: AppColors.slate900,
                       ),
                     ),
                   ],
                 ),
-              ),
+                
+                const SizedBox(height: 16),
+                
+                // Quick actions or more info could go here
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: AppColors.slate50,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: AppColors.slate100),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.person_outline, size: 14, color: AppColors.slate400),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Assigned to Staff',
+                        style: AppTheme.sans(
+                          size: 11,
+                          weight: FontWeight.w600,
+                          color: AppColors.slate500,
+                        ),
+                      ),
+                      const Spacer(),
+                      Text(
+                        'View Details',
+                        style: AppTheme.sans(
+                          size: 11,
+                          weight: FontWeight.w700,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

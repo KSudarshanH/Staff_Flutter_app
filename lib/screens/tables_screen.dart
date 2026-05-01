@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../contexts/auth_provider.dart';
+import '../contexts/tables_provider.dart';
 import '../models/models.dart';
 import '../theme/app_theme.dart';
 import '../widgets/common_widgets.dart';
@@ -15,18 +16,21 @@ class TablesScreen extends StatefulWidget {
 class _TablesScreenState extends State<TablesScreen> {
   String _activeFilter = 'all';
 
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final token = context.read<AuthProvider>().token;
+      if (token != null) {
+        context.read<TablesProvider>().fetchTables(token);
+      }
+    });
+  }
+
   Map<String, dynamic> _getStatusConfig(TableModel table) {
-    if (table.status == TableStatus.needsBill) {
+    if (table.status == TableStatus.occupied) {
       return {
-        'bg': const Color(0xFFFFFBEB), // warning-light roughly
-        'text': const Color(0xFFD97706),
-        'label': 'Needs Bill',
-        'icon': Icons.receipt_long,
-        'gradient': const [Color(0xFFF59E0B), Color(0xFFD97706)],
-      };
-    } else if (table.status == TableStatus.occupied) {
-      return {
-        'bg': const Color(0xFFEFF6FF), // info-light
+        'bg': const Color(0xFFEFF6FF),
         'text': const Color(0xFF2563EB),
         'label': 'Occupied',
         'icon': Icons.people,
@@ -34,46 +38,22 @@ class _TablesScreenState extends State<TablesScreen> {
       };
     } else {
       return {
-        'bg': const Color(0xFFF0FDF4), // success-light
+        'bg': const Color(0xFFF0FDF4),
         'text': const Color(0xFF16A34A),
         'label': 'Available',
         'icon': Icons.check_circle_outline,
         'gradient': const [
           Color(0xFFC8A951),
           Color(0xFFB8993D),
-        ], // Next.js uses gold for available
+        ],
       };
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Generate dummy tables matching Next.js logic
-    final List<TableModel> allTables = List.generate(12, (index) {
-      final name = 'Table ${index + 1}';
-      if (index % 5 == 0) {
-        return TableModel(
-          id: 't$index',
-          name: name,
-          status: TableStatus.needsBill,
-          seats: 4,
-        );
-      } else if (index % 3 == 0) {
-        return TableModel(
-          id: 't$index',
-          name: name,
-          status: TableStatus.occupied,
-          seats: 4,
-        );
-      } else {
-        return TableModel(
-          id: 't$index',
-          name: name,
-          status: TableStatus.available,
-          seats: 4,
-        );
-      }
-    });
+    final tablesProvider = context.watch<TablesProvider>();
+    final allTables = tablesProvider.tables;
 
     final filters = [
       {'id': 'all', 'label': 'All', 'count': allTables.length},
@@ -91,13 +71,6 @@ class _TablesScreenState extends State<TablesScreen> {
             .where((t) => t.status == TableStatus.occupied)
             .length,
       },
-      {
-        'id': 'needs-bill',
-        'label': 'Needs Bill',
-        'count': allTables
-            .where((t) => t.status == TableStatus.needsBill)
-            .length,
-      },
     ];
 
     List<TableModel> filteredTables;
@@ -107,13 +80,9 @@ class _TablesScreenState extends State<TablesScreen> {
       filteredTables = allTables
           .where((t) => t.status == TableStatus.available)
           .toList();
-    } else if (_activeFilter == 'occupied') {
-      filteredTables = allTables
-          .where((t) => t.status == TableStatus.occupied)
-          .toList();
     } else {
       filteredTables = allTables
-          .where((t) => t.status == TableStatus.needsBill)
+          .where((t) => t.status == TableStatus.occupied)
           .toList();
     }
 
@@ -152,12 +121,21 @@ class _TablesScreenState extends State<TablesScreen> {
                         ),
                       );
 
-                Widget content = filteredTables.isEmpty
-                    ? const EmptyState(
-                        icon: Icons.grid_view,
-                        title: 'No tables found',
+                Widget content = tablesProvider.isLoading
+                    ? const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(48),
+                          child: CircularProgressIndicator(
+                            color: AppColors.primary,
+                          ),
+                        ),
                       )
-                    : GridView.builder(
+                    : filteredTables.isEmpty
+                        ? const EmptyState(
+                            icon: Icons.grid_view,
+                            title: 'No tables found',
+                          )
+                        : GridView.builder(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
                         padding: EdgeInsets.zero,
@@ -167,8 +145,7 @@ class _TablesScreenState extends State<TablesScreen> {
                               : 1,
                           crossAxisSpacing: 24,
                           mainAxisSpacing: 24,
-                          childAspectRatio:
-                              2.5, // Matches the horizontal layout
+                          mainAxisExtent: 110, // Adjusted after removing Bill button
                         ),
                         itemCount: filteredTables.length,
                         itemBuilder: (context, index) {
@@ -300,9 +277,6 @@ class _TableCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final auth = context.watch<AuthProvider>();
-    final isServing = auth.role == StaffRole.servingStaff;
-
     return GestureDetector(
       onTap: null,
       child: Container(
@@ -389,48 +363,10 @@ class _TableCard extends StatelessWidget {
                                 ),
                               ),
                             ),
-                            if (table.status == TableStatus.needsBill) ...[
-                              const SizedBox(height: 8),
-                              Text(
-                                '₹2450',
-                                style: AppTheme.sans(
-                                  size: 16,
-                                  weight: FontWeight.w700,
-                                  color: AppColors.primary,
-                                ),
-                              ),
-                            ],
                           ],
                         ),
                       ],
                     ),
-
-                    // Actions bottom row
-                    if ((table.status == TableStatus.occupied ||
-                            table.status == TableStatus.needsBill) &&
-                        !isServing)
-                      Container(
-                        margin: const EdgeInsets.only(top: 16),
-                        padding: const EdgeInsets.only(top: 16),
-                        decoration: const BoxDecoration(
-                          border: Border(
-                            top: BorderSide(color: Color(0xFFF1F5F9)),
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: PrimaryButton(
-                                label: 'Bill',
-                                color: const Color(0xFFDCFCE7), // success/10
-                                textColor: const Color(0xFFC8A951),
-                                onTap: () =>
-                                    Navigator.pushNamed(context, '/billing'),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
                   ],
                 ),
               ),

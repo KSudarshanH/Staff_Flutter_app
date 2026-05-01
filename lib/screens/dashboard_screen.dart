@@ -56,39 +56,39 @@ class DashboardScreen extends StatelessWidget {
                             physics: const NeverScrollableScrollPhysics(),
                             crossAxisSpacing: 32,
                             mainAxisSpacing: 32,
-                            childAspectRatio: 0.9,
+                            childAspectRatio: 0.78, // Further increased height
                             children: [
                               _FeatureCard(
-                                icon: Icons.restaurant_menu,
+                                icon: Icons.add_shopping_cart,
                                 iconColor: const Color(0xFF7B1F1F),
-                                iconBg: const Color(0xFFFEF2F2), // bg-red-50
-                                title: 'New Order',
+                                iconBg: const Color(0xFFFEF2F2),
+                                title: 'Create Order',
+                                onTap: () =>
+                                    Navigator.pushNamed(context, '/create-order'),
+                              ),
+                              _FeatureCard(
+                                icon: Icons.notifications_active_outlined,
+                                iconColor: const Color(0xFFD97706),
+                                iconBg: const Color(0xFFFFFBEB),
+                                title: 'Requests',
                                 onTap: () =>
                                     Navigator.pushNamed(context, '/new-orders'),
                               ),
                               _FeatureCard(
-                                icon: Icons.grid_view_rounded,
-                                iconColor: const Color(0xFFD97706),
-                                iconBg: const Color(0xFFFFFBEB), // bg-amber-50
-                                title: 'Table Status',
-                                onTap: () =>
-                                    Navigator.pushNamed(context, '/tables'),
-                              ),
-                              _FeatureCard(
                                 icon: Icons.receipt_long_outlined,
                                 iconColor: const Color(0xFF0D9488),
-                                iconBg: const Color(0xFFF0FDFA), // bg-teal-50
-                                title: 'Orders',
+                                iconBg: const Color(0xFFF0FDFA),
+                                title: 'Active Orders',
                                 onTap: () =>
                                     Navigator.pushNamed(context, '/orders'),
                               ),
                               _FeatureCard(
-                                icon: Icons.people_outline,
+                                icon: Icons.grid_view_rounded,
                                 iconColor: const Color(0xFF475569),
-                                iconBg: const Color(0xFFF8FAFC), // bg-slate-50
-                                title: 'My Profile',
+                                iconBg: const Color(0xFFF8FAFC),
+                                title: 'Tables',
                                 onTap: () =>
-                                    Navigator.pushNamed(context, '/profile'),
+                                    Navigator.pushNamed(context, '/tables'),
                               ),
                             ].animate(interval: 100.ms).fade(duration: 400.ms).slideY(begin: 0.2, end: 0, duration: 400.ms, curve: Curves.easeOutQuad),
                           );
@@ -191,7 +191,7 @@ class DashboardScreen extends StatelessWidget {
                                           crossAxisCount: cols,
                                           mainAxisSpacing: 24,
                                           crossAxisSpacing: 24,
-                                          childAspectRatio: 1.6,
+                                          childAspectRatio: 1.35,
                                         ),
                                     itemCount: recentOrders.length,
                                     itemBuilder: (ctx, i) =>
