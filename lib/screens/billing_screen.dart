@@ -122,16 +122,16 @@ class _BillingScreenState extends State<BillingScreen> {
                 final isWide = constraints.maxWidth >= 768;
 
                 // Revenue Stats Row
-                final statsRow = GridView.count(
-                  crossAxisCount: isWide
-                      ? (constraints.maxWidth >= 1024 ? 3 : 2)
-                      : 1,
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  crossAxisSpacing: 24,
-                  mainAxisSpacing: 24,
-                  childAspectRatio: isWide ? 2.5 : 3.0,
-                  children: [
+                    final statsRow = GridView.count(
+                      crossAxisCount: isWide
+                          ? (constraints.maxWidth >= 1024 ? 3 : 2)
+                          : 1,
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      crossAxisSpacing: 20,
+                      mainAxisSpacing: 20,
+                      childAspectRatio: isWide ? 2.5 : 2.7,
+                      children: [
                     StatCard(
                       icon: Icons.account_balance_wallet,
                       iconColor: AppColors.warning,
@@ -332,6 +332,8 @@ class _BillingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isSmall = MediaQuery.of(context).size.width < 400;
+
     return GestureDetector(
       onTap: () {
   if (order.status == OrderStatus.served ||
@@ -410,65 +412,67 @@ class _BillingCard extends StatelessWidget {
             // Content
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.all(20),
+                padding: EdgeInsets.all(isSmall ? 16 : 20),
                 child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          width: 48,
-                          height: 48,
-                          decoration: BoxDecoration(
-                            color: AppColors.slate50,
-                            borderRadius: BorderRadius.circular(12),
+                    Expanded(
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Container(
+                            width: isSmall ? 40 : 48,
+                            height: isSmall ? 40 : 48,
+                            decoration: BoxDecoration(
+                              color: AppColors.slate50,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Icon(
+                              Icons.receipt_long,
+                              color: AppColors.primary,
+                              size: isSmall ? 20 : 24,
+                            ),
                           ),
-                          child: const Icon(
-                            Icons.receipt_long,
-                            color: AppColors.primary,
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  order.table,
+                                  style: AppTheme.sans(
+                                    size: isSmall ? 16 : 20,
+                                    weight: FontWeight.w700,
+                                    color: AppColors.slate900,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  '${order.items} items',
+                                  style: AppTheme.sans(
+                                    size: isSmall ? 12 : 14,
+                                    color: AppColors.slate500,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 16),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              order.table,
-                              style: AppTheme.sans(
-                                size: 20,
-                                weight: FontWeight.w700,
-                                color: AppColors.slate900,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              '${order.items} items',
-                              style: AppTheme.sans(
-                                size: 14,
-                                color: AppColors.slate500,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              order.time,
-                              style: AppTheme.sans(
-                                size: 12,
-                                color: AppColors.slate400,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
+                    const SizedBox(width: 12),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
                           '₹${order.total.round()}',
                           style: AppTheme.sans(
-                            size: 28,
+                            size: isSmall ? 22 : 28,
                             weight: FontWeight.w900,
                             color: AppColors.slate900,
                           ),
@@ -476,13 +480,16 @@ class _BillingCard extends StatelessWidget {
                         if (order.status == OrderStatus.served ||
                             order.status == OrderStatus.billed) ...[
                           const SizedBox(height: 8),
-                          PrimaryButton(
-                            label: 'Pay Now',
-                            color: AppColors.gold,
-                            onTap: () => Navigator.pushNamed(
-                              context,
-                              '/payment',
-                              arguments: order.id,
+                          SizedBox(
+                            height: isSmall ? 36 : null,
+                            child: PrimaryButton(
+                              label: 'Pay Now',
+                              color: AppColors.gold,
+                              onTap: () => Navigator.pushNamed(
+                                context,
+                                '/payment',
+                                arguments: order.id,
+                              ),
                             ),
                           ),
                         ],

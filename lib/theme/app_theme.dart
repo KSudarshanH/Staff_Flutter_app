@@ -15,6 +15,15 @@ class AppColors {
   static const Color ivory = Color(0xFFFAF9F6);
   static const Color ivoryDark = Color(0xFFF1F0EA);
 
+  // ── Role-specific accent colors ───────────────────────────────────────────
+  /// Gold family — used as active accent for Serving Staff nav
+  static const Color servingAccent = Color(0xFFF4C430);
+  static const Color servingAccentLight = Color(0xFFFEF9E7);
+
+  /// Teal family — used as active accent for Billing Staff nav
+  static const Color billingAccent = Color(0xFF0D9488);
+  static const Color billingAccentLight = Color(0xFFE6FAF8);
+
   // Status colors
   static const Color success = Color(0xFF10B981);
   static const Color successLight = Color(0xFFD1FAE5);
@@ -42,6 +51,133 @@ class AppColors {
   static const Color text = slate900;
   static const Color textLight = slate500;
   static const Color border = slate200;
+}
+
+// ─── Named Shadow Presets ──────────────────────────────────────────────────
+class AppShadows {
+  /// Subtle card elevation
+  static List<BoxShadow> get card => [
+        BoxShadow(
+          color: Colors.black.withValues(alpha: 0.05),
+          blurRadius: 16,
+          offset: const Offset(0, 6),
+        ),
+      ];
+
+  /// Elevated floating surface (modals, bottom nav)
+  static List<BoxShadow> get float => [
+        BoxShadow(
+          color: Colors.black.withValues(alpha: 0.08),
+          blurRadius: 24,
+          offset: const Offset(0, -4),
+        ),
+      ];
+
+  /// Gold CTA glow
+  static List<BoxShadow> get goldGlow => [
+        BoxShadow(
+          color: AppColors.gold.withValues(alpha: 0.35),
+          blurRadius: 18,
+          offset: const Offset(0, 6),
+        ),
+      ];
+
+  /// Primary maroon glow
+  static List<BoxShadow> get primaryGlow => [
+        BoxShadow(
+          color: AppColors.primary.withValues(alpha: 0.25),
+          blurRadius: 18,
+          offset: const Offset(0, 6),
+        ),
+      ];
+
+  /// Teal billing glow
+  static List<BoxShadow> get billingGlow => [
+        BoxShadow(
+          color: AppColors.billingAccent.withValues(alpha: 0.25),
+          blurRadius: 18,
+          offset: const Offset(0, 6),
+        ),
+      ];
+}
+
+// ─── Named Text Styles ─────────────────────────────────────────────────────
+class AppTextStyles {
+  /// Large display — Playfair Display, for hero headings
+  static TextStyle display({
+    Color color = AppColors.slate900,
+    double size = 40,
+  }) =>
+      AppTheme.serif(
+        size: size,
+        weight: FontWeight.w800,
+        color: color,
+        letterSpacing: -1.0,
+      );
+
+  /// Section headline — Playfair Display
+  static TextStyle headline({
+    Color color = AppColors.slate900,
+    double size = 28,
+  }) =>
+      AppTheme.serif(
+        size: size,
+        weight: FontWeight.w700,
+        color: color,
+        letterSpacing: -0.5,
+      );
+
+  /// Card title — Playfair Display
+  static TextStyle title({
+    Color color = AppColors.slate900,
+    double size = 20,
+  }) =>
+      AppTheme.serif(
+        size: size,
+        weight: FontWeight.w700,
+        color: color,
+      );
+
+  /// Body / label — Inter, medium weight
+  static TextStyle label({
+    Color color = AppColors.slate700,
+    double size = 14,
+  }) =>
+      AppTheme.sans(
+        size: size,
+        weight: FontWeight.w600,
+        color: color,
+      );
+
+  /// Small body — Inter
+  static TextStyle body({
+    Color color = AppColors.slate500,
+    double size = 13,
+  }) =>
+      AppTheme.sans(size: size, color: color);
+
+  /// Tiny overline — Inter, all caps spaced
+  static TextStyle overline({
+    Color color = AppColors.slate400,
+    double size = 10,
+  }) =>
+      AppTheme.sans(
+        size: size,
+        weight: FontWeight.w700,
+        color: color,
+        letterSpacing: 1.5,
+      );
+
+  /// Numeric / monetary — Inter, black weight
+  static TextStyle numeric({
+    Color color = AppColors.slate900,
+    double size = 24,
+  }) =>
+      AppTheme.sans(
+        size: size,
+        weight: FontWeight.w900,
+        color: color,
+      );
 }
 
 class AppTheme {
@@ -82,7 +218,8 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.white,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: const BorderSide(color: AppColors.slate200),

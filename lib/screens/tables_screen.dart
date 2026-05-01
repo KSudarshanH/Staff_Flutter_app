@@ -5,6 +5,7 @@ import '../contexts/tables_provider.dart';
 import '../models/models.dart';
 import '../theme/app_theme.dart';
 import '../widgets/common_widgets.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 class TablesScreen extends StatefulWidget {
   const TablesScreen({super.key});
@@ -27,26 +28,25 @@ class _TablesScreenState extends State<TablesScreen> {
     });
   }
 
-  Map<String, dynamic> _getStatusConfig(TableModel table) {
+  _TableDisplayConfig _getStatusConfig(TableModel table) {
     if (table.status == TableStatus.occupied) {
-      return {
-        'bg': const Color(0xFFEFF6FF),
-        'text': const Color(0xFF2563EB),
-        'label': 'Occupied',
-        'icon': Icons.people,
-        'gradient': const [Color(0xFF3B82F6), Color(0xFF2563EB)],
-      };
+      return const _TableDisplayConfig(
+        bg: Color(0xFFEFF6FF),
+        textColor: Color(0xFF2563EB),
+        label: 'Occupied',
+        icon: Icons.people_rounded,
+        gradient: [Color(0xFF3B82F6), Color(0xFF2563EB)],
+        cardBorder: Color(0xFFBFDBFE),
+      );
     } else {
-      return {
-        'bg': const Color(0xFFF0FDF4),
-        'text': const Color(0xFF16A34A),
-        'label': 'Available',
-        'icon': Icons.check_circle_outline,
-        'gradient': const [
-          Color(0xFFC8A951),
-          Color(0xFFB8993D),
-        ],
-      };
+      return _TableDisplayConfig(
+        bg: const Color(0xFFF0FDF4),
+        textColor: const Color(0xFF16A34A),
+        label: 'Available',
+        icon: Icons.check_circle_rounded,
+        gradient: const [Color(0xFF34D399), Color(0xFF10B981)],
+        cardBorder: const Color(0xFFBBF7D0),
+      );
     }
   }
 
@@ -60,16 +60,12 @@ class _TablesScreenState extends State<TablesScreen> {
       {
         'id': 'available',
         'label': 'Available',
-        'count': allTables
-            .where((t) => t.status == TableStatus.available)
-            .length,
+        'count': allTables.where((t) => t.status == TableStatus.available).length,
       },
       {
         'id': 'occupied',
         'label': 'Occupied',
-        'count': allTables
-            .where((t) => t.status == TableStatus.occupied)
-            .length,
+        'count': allTables.where((t) => t.status == TableStatus.occupied).length,
       },
     ];
 
@@ -77,13 +73,11 @@ class _TablesScreenState extends State<TablesScreen> {
     if (_activeFilter == 'all') {
       filteredTables = allTables;
     } else if (_activeFilter == 'available') {
-      filteredTables = allTables
-          .where((t) => t.status == TableStatus.available)
-          .toList();
+      filteredTables =
+          allTables.where((t) => t.status == TableStatus.available).toList();
     } else {
-      filteredTables = allTables
-          .where((t) => t.status == TableStatus.occupied)
-          .toList();
+      filteredTables =
+          allTables.where((t) => t.status == TableStatus.occupied).toList();
     }
 
     return Scaffold(
@@ -100,23 +94,23 @@ class _TablesScreenState extends State<TablesScreen> {
               builder: (context, constraints) {
                 final isWide = constraints.maxWidth >= 768;
 
+                // Filter buttons
                 Widget filterList = isWide
                     ? Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: filters
-                            .map((f) => _buildFilterButton(f, isWide))
+                            .map((f) => _buildFilterButton(f, isWide: true))
                             .toList(),
                       )
                     : SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
                         child: Row(
                           children: filters
-                              .map(
-                                (f) => Padding(
-                                  padding: const EdgeInsets.only(right: 8),
-                                  child: _buildFilterButton(f, isWide),
-                                ),
-                              )
+                              .map((f) => Padding(
+                                    padding: const EdgeInsets.only(right: 10),
+                                    child:
+                                        _buildFilterButton(f, isWide: false),
+                                  ))
                               .toList(),
                         ),
                       );
@@ -126,40 +120,48 @@ class _TablesScreenState extends State<TablesScreen> {
                         child: Padding(
                           padding: EdgeInsets.all(48),
                           child: CircularProgressIndicator(
-                            color: AppColors.primary,
-                          ),
+                              color: AppColors.primary),
                         ),
                       )
                     : filteredTables.isEmpty
                         ? const EmptyState(
-                            icon: Icons.grid_view,
+                            icon: Icons.grid_view_rounded,
                             title: 'No tables found',
+                            subtitle: 'Try a different filter',
                           )
                         : GridView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        padding: EdgeInsets.zero,
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: isWide
-                              ? (constraints.maxWidth >= 1024 ? 3 : 2)
-                              : 1,
-                          crossAxisSpacing: 24,
-                          mainAxisSpacing: 24,
-                          mainAxisExtent: 110, // Adjusted after removing Bill button
-                        ),
-                        itemCount: filteredTables.length,
-                        itemBuilder: (context, index) {
-                          final table = filteredTables[index];
-                          final config = _getStatusConfig(table);
-                          return _TableCard(table: table, config: config);
-                        },
-                      );
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            padding: EdgeInsets.zero,
+                            gridDelegate:
+                                SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: isWide
+                                  ? (constraints.maxWidth >= 1024 ? 3 : 2)
+                                  : 1,
+                              crossAxisSpacing: 16,
+                              mainAxisSpacing: 16,
+                              mainAxisExtent: 110,
+                            ),
+                            itemCount: filteredTables.length,
+                            itemBuilder: (context, index) {
+                              final table = filteredTables[index];
+                              final config = _getStatusConfig(table);
+                              return _TableCard(table: table, config: config)
+                                  .animate(
+                                      delay: Duration(
+                                          milliseconds: index * 60))
+                                  .fade(duration: 350.ms)
+                                  .slideY(
+                                      begin: 0.1,
+                                      end: 0,
+                                      duration: 350.ms,
+                                      curve: Curves.easeOutQuad);
+                            },
+                          );
 
                 return SingleChildScrollView(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 32,
-                  ),
+                      horizontal: 20, vertical: 24),
                   child: Center(
                     child: ConstrainedBox(
                       constraints: const BoxConstraints(maxWidth: 1280),
@@ -167,17 +169,17 @@ class _TablesScreenState extends State<TablesScreen> {
                           ? Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                // Sidebar Filter
+                                // Sidebar Filter Panel
                                 Container(
-                                  width: 256,
-                                  margin: const EdgeInsets.only(right: 32),
-                                  padding: const EdgeInsets.all(24),
+                                  width: 240,
+                                  margin: const EdgeInsets.only(right: 24),
+                                  padding: const EdgeInsets.all(20),
                                   decoration: BoxDecoration(
                                     color: AppColors.white,
                                     borderRadius: BorderRadius.circular(24),
                                     border: Border.all(
-                                      color: const Color(0xFFF1F5F9),
-                                    ),
+                                        color: AppColors.slate100),
+                                    boxShadow: AppShadows.card,
                                   ),
                                   child: Column(
                                     crossAxisAlignment:
@@ -185,11 +187,10 @@ class _TablesScreenState extends State<TablesScreen> {
                                     children: [
                                       Text(
                                         'VIEW OPTIONS',
-                                        style: AppTheme.sans(
-                                          size: 12,
-                                          weight: FontWeight.w700,
+                                        style: AppTextStyles.overline(
                                           color: AppColors.slate400,
-                                        ).copyWith(letterSpacing: 1.0),
+                                          size: 10,
+                                        ).copyWith(letterSpacing: 1.5),
                                       ),
                                       const SizedBox(height: 16),
                                       filterList,
@@ -201,9 +202,10 @@ class _TablesScreenState extends State<TablesScreen> {
                               ],
                             )
                           : Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 filterList,
-                                const SizedBox(height: 24),
+                                const SizedBox(height: 20),
                                 content,
                               ],
                             ),
@@ -218,19 +220,34 @@ class _TablesScreenState extends State<TablesScreen> {
     );
   }
 
-  Widget _buildFilterButton(Map<String, dynamic> f, bool isWide) {
+  Widget _buildFilterButton(Map<String, dynamic> f, {required bool isWide}) {
     final isActive = _activeFilter == f['id'];
+    final count = f['count'] as int;
+
     return Padding(
       padding: isWide ? const EdgeInsets.only(bottom: 8) : EdgeInsets.zero,
-      child: InkWell(
+      child: GestureDetector(
         onTap: () => setState(() => _activeFilter = f['id'] as String),
-        borderRadius: BorderRadius.circular(12),
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeOutCubic,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
-            color: isActive ? AppColors.primary : Colors.transparent,
-            borderRadius: BorderRadius.circular(12),
+            gradient: isActive
+                ? const LinearGradient(
+                    colors: [AppColors.gold, AppColors.goldDark],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  )
+                : null,
+            color: isActive ? null : AppColors.white,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: isActive
+                  ? AppColors.goldDark.withValues(alpha: 0.3)
+                  : AppColors.slate200,
+            ),
+            boxShadow: isActive ? AppShadows.goldGlow : null,
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -238,26 +255,26 @@ class _TablesScreenState extends State<TablesScreen> {
               Text(
                 f['label'] as String,
                 style: AppTheme.sans(
-                  size: 14,
+                  size: 13,
                   weight: FontWeight.w700,
-                  color: isActive ? AppColors.white : AppColors.slate900,
+                  color: isActive ? AppColors.primary : AppColors.slate700,
                 ),
               ),
-              if (isWide) const SizedBox(width: 8),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
                 decoration: BoxDecoration(
                   color: isActive
-                      ? Colors.white.withValues(alpha: 0.2)
-                      : AppColors.ivory,
+                      ? AppColors.primary.withValues(alpha: 0.15)
+                      : AppColors.slate100,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  '${f['count']}',
+                  '$count',
                   style: AppTheme.sans(
-                    size: 12,
-                    weight: FontWeight.w700,
-                    color: isActive ? AppColors.white : AppColors.slate500,
+                    size: 11,
+                    weight: FontWeight.w800,
+                    color: isActive ? AppColors.primary : AppColors.slate500,
                   ),
                 ),
               ),
@@ -269,111 +286,140 @@ class _TablesScreenState extends State<TablesScreen> {
   }
 }
 
+// ─── Table Card ────────────────────────────────────────────────────────────
 class _TableCard extends StatelessWidget {
   final TableModel table;
-  final Map<String, dynamic> config;
+  final _TableDisplayConfig config;
 
   const _TableCard({required this.table, required this.config});
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: null,
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.slate100),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: Row(
-          children: [
-            // Left Gradient Strip (w-1.5)
-            Container(
-              width: 6,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: config['gradient'] as List<Color>,
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                ),
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: config.cardBorder),
+        boxShadow: AppShadows.card,
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Row(
+        children: [
+          // Left gradient strip
+          Container(
+            width: 5,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: config.gradient,
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
               ),
             ),
+          ),
 
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              child: Row(
+                children: [
+                  // Icon container
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: config.bg,
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Icon(
+                      config.icon,
+                      size: 24,
+                      color: config.textColor,
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Row(
-                          children: [
-                            Icon(
-                              config['icon'] as IconData,
-                              size: 24,
-                              color: config['text'] as Color,
-                            ),
-                            const SizedBox(width: 12),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  table.name,
-                                  style: AppTheme.sans(
-                                    size: 18,
-                                    weight: FontWeight.w700,
-                                    color: AppColors.slate900,
-                                  ),
-                                ),
-                                // (If you had seats/server, it would go here)
-                              ],
-                            ),
-                          ],
+                        Text(
+                          table.name,
+                          style: AppTextStyles.label(
+                            color: AppColors.slate900,
+                            size: 16,
+                          ),
                         ),
-
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 6,
-                              ),
-                              decoration: BoxDecoration(
-                                color: config['bg'] as Color,
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Text(
-                                config['label'] as String,
-                                style: AppTheme.sans(
-                                  size: 12,
-                                  weight: FontWeight.w700,
-                                  color: config['text'] as Color,
-                                ),
-                              ),
-                            ),
-                          ],
+                        const SizedBox(height: 4),
+                        Text(
+                          config.label,
+                          style: AppTheme.sans(
+                            size: 12,
+                            weight: FontWeight.w600,
+                            color: config.textColor,
+                          ),
                         ),
                       ],
                     ),
-                  ],
-                ),
+                  ),
+                  // Status pill on right
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: config.bg,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: config.textColor.withValues(alpha: 0.15),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 6,
+                          height: 6,
+                          decoration: BoxDecoration(
+                            color: config.textColor,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          config.label,
+                          style: AppTheme.sans(
+                            size: 11,
+                            weight: FontWeight.w700,
+                            color: config.textColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
+}
+
+// ─── Table Display Config ──────────────────────────────────────────────────
+class _TableDisplayConfig {
+  final Color bg;
+  final Color textColor;
+  final String label;
+  final IconData icon;
+  final List<Color> gradient;
+  final Color cardBorder;
+
+  const _TableDisplayConfig({
+    required this.bg,
+    required this.textColor,
+    required this.label,
+    required this.icon,
+    required this.gradient,
+    required this.cardBorder,
+  });
 }

@@ -78,6 +78,7 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
       await ordersProvider.createOrder(
             {
               "table_id": _selectedTableId,
+              "order_type": _selectedTableId == null ? "TAKEAWAY" : "DINE_IN",
               "customer_name": _nameCtrl.text.trim().isEmpty
                   ? 'Walk-in Customer'
                   : _nameCtrl.text.trim(),
@@ -268,12 +269,13 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
 
   // ── Table & Customer fields ──────────────────────────────────────
   Widget _buildTableAndCustomer(List<TableModel> tables) {
+    final availableTables = tables.where((t) => t.status == TableStatus.available).toList();
     final tableOptions = <DropdownMenuItem<String>>[
       const DropdownMenuItem(
         value: '',
         child: Text('Takeaway / Walk-in'),
       ),
-      ...tables.map(
+      ...availableTables.map(
         (t) => DropdownMenuItem(
           value: t.id,
           child: Text(t.name.toLowerCase().startsWith('table')
@@ -595,30 +597,40 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
                         ),
                       ),
 
-                    if (selected.isNotEmpty) ...[
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 16),
-                        child: Divider(height: 1, color: AppColors.slate100),
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text('Total Amount',
-                              style: AppTheme.sans(
-                                  size: 14,
-                                  weight: FontWeight.w700,
-                                  color: AppColors.slate500)),
-                          Text(
-                            '₹${total.toStringAsFixed(0)}',
-                            style: AppTheme.serif(
-                              size: 24,
-                              weight: FontWeight.w900,
-                              color: AppColors.primary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+                     if (selected.isNotEmpty) ...[
+                       const Padding(
+                         padding: EdgeInsets.symmetric(vertical: 16),
+                         child: Divider(height: 1, color: AppColors.slate100),
+                       ),
+                       _SummaryDetailRow(
+                         label: 'Subtotal',
+                         value: '₹${total.toStringAsFixed(0)}',
+                       ),
+                       const SizedBox(height: 8),
+                       _SummaryDetailRow(
+                         label: 'Tax (5%)',
+                         value: '₹${(total * 0.05).toStringAsFixed(0)}',
+                       ),
+                       const SizedBox(height: 16),
+                       Row(
+                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                         children: [
+                           Text('Total Amount',
+                               style: AppTheme.sans(
+                                   size: 14,
+                                   weight: FontWeight.w700,
+                                   color: AppColors.slate500)),
+                           Text(
+                             '₹${(total * 1.05).toStringAsFixed(0)}',
+                             style: AppTheme.serif(
+                               size: 24,
+                               weight: FontWeight.w900,
+                               color: AppColors.primary,
+                             ),
+                           ),
+                         ],
+                       ),
+                     ],
                   ],
                 ),
               ),
@@ -821,6 +833,31 @@ class _SummaryRow extends StatelessWidget {
             textAlign: TextAlign.right,
           ),
         ),
+      ],
+    );
+  }
+}
+class _SummaryDetailRow extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _SummaryDetailRow({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label,
+            style: AppTheme.sans(
+                size: 13,
+                color: AppColors.slate400,
+                weight: FontWeight.w500)),
+        Text(value,
+            style: AppTheme.sans(
+                size: 13,
+                color: AppColors.slate700,
+                weight: FontWeight.w600)),
       ],
     );
   }

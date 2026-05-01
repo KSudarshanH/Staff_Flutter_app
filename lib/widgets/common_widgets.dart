@@ -33,7 +33,14 @@ class PageHeader extends StatelessWidget {
         return Container(
           width: double.infinity,
           decoration: BoxDecoration(
-            color: AppColors.primary,
+            gradient: LinearGradient(
+              colors: [
+                AppColors.primary,
+                AppColors.primaryDark,
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
             boxShadow: [
               BoxShadow(
                 color: AppColors.primaryDark.withValues(alpha: 0.3),
@@ -61,7 +68,26 @@ class PageHeader extends StatelessWidget {
                   color: AppColors.gold.withValues(alpha: 0.08),
                 ),
               ),
-              
+              // Gold diagonal shimmer stripe
+              Positioned(
+                top: 0,
+                bottom: 0,
+                right: 60,
+                child: Container(
+                  width: 1,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.transparent,
+                        AppColors.gold.withValues(alpha: 0.12),
+                        Colors.transparent,
+                      ],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                    ),
+                  ),
+                ),
+              ),
               SafeArea(
                 bottom: false,
                 child: Padding(
@@ -90,7 +116,7 @@ class PageHeader extends StatelessWidget {
                                 ),
                               ],
                             ).animate().fade(duration: 600.ms).slideX(begin: -0.2, curve: Curves.easeOutQuad),
-                            if (actions != null) 
+                            if (actions != null)
                               Row(children: actions!)
                                 .animate().fade(duration: 600.ms, delay: 200.ms).slideX(begin: 0.2, curve: Curves.easeOutQuad),
                           ],
@@ -246,7 +272,8 @@ class _HeaderIconButtonState extends State<HeaderIconButton> {
         duration: 100.ms,
         child: widget.label != null
             ? Container(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
                     colors: [AppColors.gold, AppColors.goldDark],
@@ -254,25 +281,19 @@ class _HeaderIconButtonState extends State<HeaderIconButton> {
                     end: Alignment.bottomRight,
                   ),
                   borderRadius: BorderRadius.circular(14),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.gold.withValues(alpha: 0.3),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
+                  boxShadow: AppShadows.goldGlow,
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(widget.icon, color: AppColors.white, size: 20),
+                    Icon(widget.icon, color: AppColors.primary, size: 20),
                     const SizedBox(width: 10),
                     Text(
                       widget.label!,
                       style: AppTheme.sans(
                         size: 14,
                         weight: FontWeight.w800,
-                        color: AppColors.white,
+                        color: AppColors.primary,
                       ),
                     ),
                   ],
@@ -284,7 +305,8 @@ class _HeaderIconButtonState extends State<HeaderIconButton> {
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+                  border:
+                      Border.all(color: Colors.white.withValues(alpha: 0.2)),
                   boxShadow: [
                     if (_isPressed)
                       BoxShadow(
@@ -323,13 +345,7 @@ class AppCard extends StatelessWidget {
         color: AppColors.white,
         borderRadius: BorderRadius.circular(28),
         border: Border.all(color: AppColors.slate100),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
-          ),
-        ],
+        boxShadow: AppShadows.card,
       ),
       clipBehavior: Clip.antiAlias,
       child: Padding(
@@ -353,7 +369,8 @@ class _AnimatedTap extends StatefulWidget {
   final Widget child;
   final VoidCallback onTap;
   final bool animate;
-  const _AnimatedTap({required this.child, required this.onTap, this.animate = true});
+  const _AnimatedTap(
+      {required this.child, required this.onTap, this.animate = true});
 
   @override
   State<_AnimatedTap> createState() => _AnimatedTapState();
@@ -381,7 +398,7 @@ class _AnimatedTapState extends State<_AnimatedTap> {
   }
 }
 
-// ─── Button Component ─────────────────────────────────────────────────────
+// ─── Primary Button ────────────────────────────────────────────────────────
 class PrimaryButton extends StatefulWidget {
   final String label;
   final Future<void> Function()? onTap;
@@ -411,6 +428,7 @@ class _PrimaryButtonState extends State<PrimaryButton> {
   Widget build(BuildContext context) {
     final bg = widget.color ?? AppColors.primary;
     final textC = widget.textColor ?? AppColors.white;
+    final isSmall = MediaQuery.of(context).size.width < 400;
 
     return GestureDetector(
       onTapDown: (_) => setState(() => _isPressed = true),
@@ -426,10 +444,11 @@ class _PrimaryButtonState extends State<PrimaryButton> {
         duration: 150.ms,
         child: AnimatedContainer(
           duration: 200.ms,
-          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 18),
+          padding: EdgeInsets.symmetric(
+              horizontal: isSmall ? 16 : 28, vertical: isSmall ? 10 : 18),
           decoration: BoxDecoration(
             color: bg,
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(isSmall ? 12 : 18),
             boxShadow: [
               if (!widget.isLoading)
                 BoxShadow(
@@ -438,35 +457,35 @@ class _PrimaryButtonState extends State<PrimaryButton> {
                   offset: const Offset(0, 6),
                 ),
             ],
-            gradient: widget.color == null 
-              ? LinearGradient(
-                  colors: [bg, bg.withValues(alpha: 0.85)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                )
-              : null,
+            gradient: widget.color == null
+                ? LinearGradient(
+                    colors: [bg, bg.withValues(alpha: 0.85)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  )
+                : null,
           ),
           child: Center(
             child: widget.isLoading
                 ? SizedBox(
-                    width: 24,
-                    height: 24,
+                    width: isSmall ? 18 : 24,
+                    height: isSmall ? 18 : 24,
                     child: CircularProgressIndicator(
                       color: textC,
-                      strokeWidth: 2.5,
+                      strokeWidth: 2.0,
                     ),
                   )
                 : Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       if (widget.icon != null) ...[
-                        Icon(widget.icon, color: textC, size: 20),
-                        const SizedBox(width: 10),
+                        Icon(widget.icon, color: textC, size: isSmall ? 16 : 20),
+                        const SizedBox(width: 8),
                       ],
                       Text(
                         widget.label,
                         style: AppTheme.sans(
-                          size: 16,
+                          size: isSmall ? 13 : 16,
                           weight: FontWeight.w800,
                           color: textC,
                           letterSpacing: 0.5,
@@ -475,6 +494,84 @@ class _PrimaryButtonState extends State<PrimaryButton> {
                     ],
                   ),
           ),
+        ),
+      ),
+    );
+  }
+
+}
+
+// ─── Gold Button ───────────────────────────────────────────────────────────
+/// Gold gradient CTA button with maroon text — for primary actions
+class GoldButton extends StatefulWidget {
+  final String label;
+  final VoidCallback onTap;
+  final IconData? icon;
+  final bool isLoading;
+
+  const GoldButton({
+    super.key,
+    required this.label,
+    required this.onTap,
+    this.icon,
+    this.isLoading = false,
+  });
+
+  @override
+  State<GoldButton> createState() => _GoldButtonState();
+}
+
+class _GoldButtonState extends State<GoldButton> {
+  bool _isPressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) => setState(() => _isPressed = true),
+      onTapUp: (_) => setState(() => _isPressed = false),
+      onTapCancel: () => setState(() => _isPressed = false),
+      onTap: widget.isLoading ? null : widget.onTap,
+      child: AnimatedScale(
+        scale: _isPressed ? 0.95 : 1.0,
+        duration: 130.ms,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [AppColors.goldLight, AppColors.gold, AppColors.goldDark],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: AppShadows.goldGlow,
+          ),
+          child: widget.isLoading
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    color: AppColors.primary,
+                    strokeWidth: 2.5,
+                  ),
+                )
+              : Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (widget.icon != null) ...[
+                      Icon(widget.icon, color: AppColors.primary, size: 18),
+                      const SizedBox(width: 8),
+                    ],
+                    Text(
+                      widget.label,
+                      style: AppTheme.sans(
+                        size: 14,
+                        weight: FontWeight.w800,
+                        color: AppColors.primary,
+                        letterSpacing: 0.3,
+                      ),
+                    ),
+                  ],
+                ),
         ),
       ),
     );
@@ -498,13 +595,15 @@ class ShimmerLoading extends StatefulWidget {
   State<ShimmerLoading> createState() => _ShimmerLoadingState();
 }
 
-class _ShimmerLoadingState extends State<ShimmerLoading> with SingleTickerProviderStateMixin {
+class _ShimmerLoadingState extends State<ShimmerLoading>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(vsync: this, duration: 1500.ms)..repeat();
+    _controller =
+        AnimationController(vsync: this, duration: 1500.ms)..repeat();
   }
 
   @override
@@ -565,17 +664,11 @@ class EmptyState extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppColors.white,
               shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 20,
-                  offset: const Offset(0, 10),
-                ),
-              ],
+              boxShadow: AppShadows.card,
             ),
             child: Icon(icon, size: 56, color: AppColors.slate300),
-          ).animate(onPlay: (c) => c.repeat(reverse: true))
-           .moveY(begin: -5, end: 5, duration: 2000.ms, curve: Curves.easeInOut),
+          ).animate(onPlay: (c) => c.repeat(reverse: true)).moveY(
+              begin: -5, end: 5, duration: 2000.ms, curve: Curves.easeInOut),
           const SizedBox(height: 24),
           Text(
             title,
@@ -594,7 +687,8 @@ class EmptyState extends StatelessWidget {
             ),
           ],
         ],
-      ).animate().fade(duration: 600.ms).scale(begin: const Offset(0.9, 0.9), curve: Curves.easeOutBack),
+      ).animate().fade(duration: 600.ms).scale(
+          begin: const Offset(0.9, 0.9), curve: Curves.easeOutBack),
     );
   }
 }
@@ -619,7 +713,7 @@ class StatusBadge extends StatelessWidget {
       decoration: BoxDecoration(
         color: bg,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withValues(alpha: 0.1)),
+        border: Border.all(color: color.withValues(alpha: 0.15)),
       ),
       child: Text(
         label.toUpperCase(),
@@ -655,49 +749,127 @@ class StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isSmall = MediaQuery.of(context).size.width < 400;
+
     return AppCard(
+      padding: EdgeInsets.all(isSmall ? 18 : 24),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(18),
+            padding: EdgeInsets.all(isSmall ? 14 : 18),
             decoration: BoxDecoration(
               color: iconBg,
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(isSmall ? 16 : 20),
             ),
-            child: Icon(icon, color: iconColor, size: 32),
+            child: Icon(icon, color: iconColor, size: isSmall ? 26 : 32),
           ),
-          const SizedBox(width: 20),
+          const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   label,
                   style: AppTheme.sans(
-                    size: 14,
+                    size: isSmall ? 12 : 14,
                     weight: FontWeight.w700,
                     color: AppColors.slate500,
                     letterSpacing: 0.5,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 6),
-                Text(
-                  value,
-                  style: AppTheme.serif(
-                    size: 28,
-                    weight: FontWeight.w800,
-                    color: AppColors.slate900,
+                const SizedBox(height: 4),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    value,
+                    style: AppTheme.serif(
+                      size: isSmall ? 24 : 28,
+                      weight: FontWeight.w800,
+                      color: AppColors.slate900,
+                    ),
                   ),
                 ),
                 if (subtitle != null) ...[
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 2),
                   Text(
                     subtitle!,
-                    style: AppTheme.sans(size: 13, color: AppColors.slate400),
+                    style: AppTheme.sans(
+                        size: isSmall ? 11 : 13, color: AppColors.slate400),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ],
             ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+
+// ─── Compact Stat Chip — for Dashboard stat strip ─────────────────────────
+class CompactStatChip extends StatelessWidget {
+  final IconData icon;
+  final String value;
+  final String label;
+  final Color accentColor;
+
+  const CompactStatChip({
+    super.key,
+    required this.icon,
+    required this.value,
+    required this.label,
+    required this.accentColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: accentColor.withValues(alpha: 0.25),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, size: 16, color: accentColor),
+          ),
+          const SizedBox(width: 10),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                value,
+                style: AppTheme.sans(
+                  size: 18,
+                  weight: FontWeight.w900,
+                  color: AppColors.white,
+                ),
+              ),
+              Text(
+                label,
+                style: AppTheme.sans(
+                  size: 10,
+                  weight: FontWeight.w600,
+                  color: AppColors.white.withValues(alpha: 0.7),
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ],
           ),
         ],
       ),

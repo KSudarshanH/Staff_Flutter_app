@@ -147,26 +147,21 @@ class Order {
 
     if (order.subtotal == 0 && order.itemsDetails.isNotEmpty) {
       double calcSubtotal = order.itemsDetails.fold(0.0, (sum, item) => sum + item.total);
-      double calcTotal = order.total > 0 ? order.total : calcSubtotal;
-      double calcTax = calcTotal > calcSubtotal ? calcTotal - calcSubtotal : 0.0;
+      double calcTax = calcSubtotal * 0.05; // Default 5% tax
+      double calcTotal = calcSubtotal + calcTax;
       
-      // If total was 0, let's assume standard 5% tax or just no tax for safety if total wasn't provided?
-      // Since it's a display fix, if total was 0, let's just make total = subtotal
-      
-      return Order(
-        id: order.id,
-        orderNumber: order.orderNumber,
-        table: order.table,
-        customerName: order.customerName,
-        items: order.items,
-        total: calcTotal,
+      return order.copyWith(
         subtotal: calcSubtotal,
         tax: calcTax,
-        status: order.status,
-        time: order.time,
-        createdAt: order.createdAt,
-        itemsPreview: order.itemsPreview,
-        itemsDetails: order.itemsDetails,
+        total: calcTotal,
+      );
+    } else if (order.tax == 0 && order.subtotal > 0) {
+      // If subtotal was provided but tax is 0, calculate tax
+      double calcTax = order.subtotal * 0.05;
+      double calcTotal = order.subtotal + calcTax;
+      return order.copyWith(
+        tax: calcTax,
+        total: calcTotal,
       );
     }
 
@@ -188,21 +183,35 @@ class Order {
     }
   }
 
-  Order copyWith({OrderStatus? status}) {
+  Order copyWith({
+    String? id,
+    String? orderNumber,
+    String? table,
+    String? customerName,
+    int? items,
+    double? total,
+    double? subtotal,
+    double? tax,
+    OrderStatus? status,
+    String? time,
+    DateTime? createdAt,
+    List<String>? itemsPreview,
+    List<OrderItem>? itemsDetails,
+  }) {
     return Order(
-      id: id,
-      orderNumber: orderNumber,
-      table: table,
-      customerName: customerName,
-      items: items,
-      total: total,
-      subtotal: subtotal,
-      tax: tax,
+      id: id ?? this.id,
+      orderNumber: orderNumber ?? this.orderNumber,
+      table: table ?? this.table,
+      customerName: customerName ?? this.customerName,
+      items: items ?? this.items,
+      total: total ?? this.total,
+      subtotal: subtotal ?? this.subtotal,
+      tax: tax ?? this.tax,
       status: status ?? this.status,
-      time: time,
-      createdAt: createdAt,
-      itemsPreview: itemsPreview,
-      itemsDetails: itemsDetails,
+      time: time ?? this.time,
+      createdAt: createdAt ?? this.createdAt,
+      itemsPreview: itemsPreview ?? this.itemsPreview,
+      itemsDetails: itemsDetails ?? this.itemsDetails,
     );
   }
 }
